@@ -12,6 +12,8 @@
 
 - `.streamlit/secrets.toml`、GoogleサービスアカウントJSON、`private_key` はGitHubへ絶対にアップロードしない。
 - Secretsの値が必要な場合は、ユーザーにStreamlit CloudのSecrets欄へ直接貼り付けてもらう。秘密鍵の中身をチャット欄へ表示させない。
+- Streamlit CloudでGoogle Sheets連携を動かす最大のポイントは、デプロイ済みアプリの `Settings` → `Secrets` に `[connections.gsheets]` を正しく貼り付けること。
+- 秘密鍵をチャット、GitHub、README、Issue、PR本文に貼ってしまった場合、その鍵は漏洩済みとして扱い、Google Cloudで削除して新しい鍵を作り直す。
 - `node_modules/`、`__pycache__/`、`test-results/`、`playwright-report/` はアップロードしない。
 - 初回公開では、大容量の `audio/` と `Esperanto例文5000文_収録音声/` は必須扱いにしない。スマホ向けStreamlit内蔵表示では音声はオフになるため、まずアプリ公開を優先する。
 - 失敗した場合は、Streamlit Cloudのログを読んで原因を特定してから修正する。推測だけで再デプロイを繰り返さない。
@@ -103,7 +105,7 @@ fuyou/
 
 ### 5. Secretsに貼る内容
 
-Google Sheets連携を使う場合、Streamlit CloudのSecrets欄には次の形式で貼る。
+Google Sheets連携を使う場合、Streamlit Cloudのデプロイ済みアプリの `Settings` → `Secrets` 欄に、次の形式で貼る。これは公開後に成績保存やGoogle Sheets連携を動かすための重要設定であり、GitHubには置かない。
 
 ```toml
 [connections.gsheets]
@@ -112,14 +114,23 @@ project_id = "gen-lang-client-0360673218"
 private_key = "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
 client_email = "streamlit-sheets-sa@gen-lang-client-0360673218.iam.gserviceaccount.com"
 spreadsheet = "https://docs.google.com/spreadsheets/d/1WnlZ2BACdf3uCha0JOscdk2wPselC_VVm_Ua6VlhC-I"
+token_uri = "https://oauth2.googleapis.com/token"
 ```
 
 注意:
 
 - `private_key` の `...` は実際の秘密鍵で置き換える。
-- `private_key` 内の改行は `\n` として入れる。
+- 1行形式で貼る場合、`private_key` 内の改行は `\n` として入れる。
+- 複数行形式で貼る場合は、TOMLの複数行文字列を使う。例:
+  ```toml
+  private_key = """-----BEGIN PRIVATE KEY-----
+  ...
+  -----END PRIVATE KEY-----
+  """
+  ```
 - この値はGitHubに置かない。Streamlit CloudのSecrets欄だけに入れる。
 - AIは秘密鍵の内容を読まない。必要ならユーザーに貼り付け操作だけ依頼する。
+- Secretsを保存した後は、アプリを再起動または再デプロイし、ログにGoogle Sheets認証エラーが出ないことを確認する。
 
 ### 6. デプロイログを確認する
 
