@@ -3,6 +3,8 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
+from mobile_score_sync import save_mobile_score_request
+
 
 BASE_DIR = Path(__file__).resolve().parent
 MOBILE_APP_DIR = BASE_DIR / "mobile_app"
@@ -32,6 +34,21 @@ def should_render_mobile_app(is_mobile: bool) -> bool:
     return bool(is_mobile)
 
 
+def _mobile_audio_config() -> dict:
+    try:
+        config = dict(st.secrets.get("mobile_audio", {}))
+    except Exception:
+        config = {}
+    vocab_base_url = str(config.get("vocab_base_url", "")).strip()
+    sentence_base_url = str(config.get("sentence_base_url", "")).strip()
+    enabled = bool(vocab_base_url or sentence_base_url)
+    return {
+        "enabled": enabled,
+        "vocabBaseUrl": vocab_base_url,
+        "sentenceBaseUrl": sentence_base_url,
+    }
+
+
 def render_mobile_app_entry(is_mobile: bool, *, source: str) -> bool:
     """Render the localStorage-backed mobile app inside Streamlit Cloud.
 
@@ -42,6 +59,9 @@ def render_mobile_app_entry(is_mobile: bool, *, source: str) -> bool:
     """
     if not should_render_mobile_app(is_mobile):
         return False
+
+    st.session_state.setdefault("mobile_score_sync_result", None)
+    st.session_state.setdefault("mobile_score_sync_processed", {})
 
     st.markdown(
         """
@@ -76,12 +96,25 @@ def render_mobile_app_entry(is_mobile: bool, *, source: str) -> bool:
         """,
         unsafe_allow_html=True,
     )
-    _mobile_component(
+    component_value = _mobile_component(
         source=source,
+        scoreSyncResult=st.session_state.mobile_score_sync_result,
+        audioConfig=_mobile_audio_config(),
         default=None,
         key=f"esperanto_mobile_pwa_{source}",
         height=900,
     )
+    if isinstance(component_value, dict) and component_value.get("type") == "save_score":
+        request_id = str(component_value.get("requestId", "")).strip()
+        processed = st.session_state.mobile_score_sync_processed
+        if request_id and request_id not in processed:
+            result = save_mobile_score_request(component_value)
+            st.session_state.mobile_score_sync_result = result
+            processed[request_id] = bool(result.get("ok"))
+            if len(processed) > 100:
+                for key in list(processed.keys())[:-100]:
+                    processed.pop(key, None)
+            st.rerun()
     st.markdown(
         """
         <div style="padding: 8px 12px 16px; text-align: center; font-size: 13px;">

@@ -1,4 +1,4 @@
-const APP_VERSION = "2026-05-11-mobile-pwa-2";
+const APP_VERSION = "2026-05-11-mobile-pwa-3";
 const STORAGE_PREFIX = "esperanto-choice-mobile";
 const SESSION_KEY = `${STORAGE_PREFIX}:session:v2`;
 const SETTINGS_KEY = `${STORAGE_PREFIX}:settings:v2`;
@@ -11,6 +11,11 @@ const DATA_URLS = {
 
 const VOCAB_AUDIO_BASE = "../audio/";
 const SENTENCE_AUDIO_BASE = "../Esperanto例文5000文_収録音声/";
+const DEFAULT_AUDIO_CONFIG = {
+  enabled: !window.location.pathname.includes("/component/"),
+  vocabBaseUrl: VOCAB_AUDIO_BASE,
+  sentenceBaseUrl: SENTENCE_AUDIO_BASE,
+};
 const IS_STREAMLIT_COMPONENT = window.location.pathname.includes("/component/");
 const BASE_POINTS = 10;
 const STREAK_BONUS = 0.5;
@@ -93,6 +98,9 @@ const streamlitHost = {
   setFrameHeight(height) {
     this.send("streamlit:setFrameHeight", { height });
   },
+  setComponentValue(value) {
+    this.send("streamlit:setComponentValue", { value });
+  },
 };
 
 const els = {
@@ -141,6 +149,8 @@ const els = {
   accuracyMetric: document.querySelector("#accuracyMetric"),
   pointsMetric: document.querySelector("#pointsMetric"),
   countMetric: document.querySelector("#countMetric"),
+  syncScoreButton: document.querySelector("#syncScoreButton"),
+  syncScoreStatus: document.querySelector("#syncScoreStatus"),
   retryButton: document.querySelector("#retryButton"),
   newQuizButton: document.querySelector("#newQuizButton"),
   reviewList: document.querySelector("#reviewList"),
@@ -159,12 +169,14 @@ const state = {
   },
   vocabGroups: [],
   settings: { ...DEFAULT_SETTINGS },
+  audioConfig: { ...DEFAULT_AUDIO_CONFIG },
   session: null,
   history: [],
   currentView: "loading",
   saveTimer: null,
   frameHeightTimer: null,
   lastFrameHeight: 0,
+  latestScoreSyncResult: null,
 };
 
 init().catch((error) => {
@@ -172,6 +184,7 @@ init().catch((error) => {
 });
 
 async function init() {
+  installStreamlitMessageHandler();
   streamlitHost.ready();
   installFrameHeightSync();
   bindEvents();
@@ -254,6 +267,7 @@ function bindEvents() {
     }
   });
   els.nextButton.addEventListener("click", advanceAfterFeedback);
+  els.syncScoreButton.addEventListener("click", syncScoreToSheets);
   els.retryButton.addEventListener("click", retrySession);
   els.newQuizButton.addEventListener("click", () => {
     state.session = null;
@@ -308,6 +322,74 @@ function resumeStoredSession() {
     renderQuiz();
   } else if (isCompleteSession(state.session)) {
     setView("result");
+    renderResult();
+  }
+}
+
+function installStreamlitMessageHandler() {
+  if (!IS_STREAMLIT_COMPONENT) {
+    return;
+  }
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+    if (!message || message.type !== "streamlit:render") {
+      return;
+    }
+    if (message.args?.audioConfig) {
+      applyAudioConfig(message.args.audioConfig);
+    }
+    const result = message.args?.scoreSyncResult;
+    if (result) {
+      handleScoreSyncResult(result);
+    }
+  });
+}
+
+function applyAudioConfig(config) {
+  const previous = JSON.stringify(state.audioConfig);
+  state.audioConfig = normalizeAudioConfig(config);
+  if (previous === JSON.stringify(state.audioConfig)) {
+    return;
+  }
+  normalizeSettings();
+  if (state.currentView === "setup") {
+    renderSetup();
+  } else if (state.currentView === "quiz") {
+    renderQuiz();
+  }
+}
+
+function normalizeAudioConfig(config) {
+  const candidate = isPlainObject(config) ? config : {};
+  const vocabBaseUrl = String(candidate.vocabBaseUrl || "").trim();
+  const sentenceBaseUrl = String(candidate.sentenceBaseUrl || "").trim();
+  if (!IS_STREAMLIT_COMPONENT) {
+    return { ...DEFAULT_AUDIO_CONFIG };
+  }
+  return {
+    enabled: Boolean(candidate.enabled && (vocabBaseUrl || sentenceBaseUrl)),
+    vocabBaseUrl: ensureTrailingSlash(vocabBaseUrl),
+    sentenceBaseUrl: ensureTrailingSlash(sentenceBaseUrl),
+  };
+}
+
+function handleScoreSyncResult(result) {
+  const session = state.session;
+  if (!isCompleteSession(session) || result.type !== "score_save_result") {
+    return;
+  }
+  const resultSaveId = String(result.saveId || "");
+  const resultRequestId = String(result.requestId || "");
+  const matchesSave = Boolean(resultSaveId && session.scoreSaveId && resultSaveId === session.scoreSaveId);
+  const matchesRequest = Boolean(resultRequestId && session.scoreSyncRequestId && resultRequestId === session.scoreSyncRequestId);
+  if (!matchesSave && !matchesRequest) {
+    return;
+  }
+  session.scoreSyncStatus = result.ok ? "saved" : "error";
+  session.scoreSyncMessage = String(result.message || (result.ok ? "ランキングに保存しました。" : "保存に失敗しました。"));
+  state.latestScoreSyncResult = result;
+  saveSession();
+  if (state.currentView === "result") {
     renderResult();
   }
 }
@@ -476,6 +558,9 @@ function sanitizeSession(value) {
       .map((index) => Number(index))
       .filter((index) => Number.isInteger(index) && index >= 0 && index < questionCount),
   );
+  const scoreSyncStatus = ["pending", "saved", "error"].includes(value.scoreSyncStatus)
+    ? value.scoreSyncStatus
+    : "idle";
   const session = {
     ...value,
     settings: sanitizeSettings(value.settings),
@@ -493,6 +578,12 @@ function sanitizeSession(value) {
     spartanAttempts: clampInteger(value.spartanAttempts, 0, 99999, 0),
     spartanCorrect: clampInteger(value.spartanCorrect, 0, 99999, 0),
     savedToHistory: Boolean(value.savedToHistory),
+    scoreSaveId: String(value.scoreSaveId || ""),
+    scoreSyncRequestId: String(value.scoreSyncRequestId || ""),
+    scoreSyncStatus: scoreSyncStatus === "pending" ? "error" : scoreSyncStatus,
+    scoreSyncMessage: scoreSyncStatus === "pending"
+      ? "前回の保存結果を確認できませんでした。重複は防止されるため、もう一度保存を押してください。"
+      : String(value.scoreSyncMessage || ""),
     startedAt: String(value.startedAt || new Date().toISOString()),
     updatedAt: String(value.updatedAt || new Date().toISOString()),
   };
@@ -598,7 +689,7 @@ function normalizeSettings() {
   if (!["prompt", "all", "off"].includes(state.settings.audioMode)) {
     state.settings.audioMode = "prompt";
   }
-  if (IS_STREAMLIT_COMPONENT) {
+  if (!hasAudioForMode(state.settings.mode)) {
     state.settings.audioMode = "off";
   }
   ensureVocabSelection();
@@ -617,6 +708,9 @@ function persistSettingsFromForm() {
   state.settings.levels = getCheckedLevels();
   state.settings.length = els.lengthSelect.value;
   state.settings.audioMode = els.audioMode.value;
+  if (!hasAudioForMode(state.settings.mode)) {
+    state.settings.audioMode = "off";
+  }
   state.settings.spartanMode = els.spartanMode.checked;
   saveSettings();
 }
@@ -651,7 +745,7 @@ function renderSetup() {
   els.seedInput.value = state.settings.seed;
   els.lengthSelect.value = state.settings.length;
   els.audioMode.value = state.settings.audioMode;
-  els.audioMode.disabled = IS_STREAMLIT_COMPONENT;
+  els.audioMode.disabled = !hasAudioForMode(mode);
   els.spartanMode.checked = Boolean(state.settings.spartanMode);
 
   renderVocabControls();
@@ -813,6 +907,10 @@ function startQuiz({ replaceActive = false } = {}) {
     spartanAttempts: 0,
     spartanCorrect: 0,
     savedToHistory: false,
+    scoreSaveId: "",
+    scoreSyncRequestId: "",
+    scoreSyncStatus: "idle",
+    scoreSyncMessage: "",
     startedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -1152,7 +1250,121 @@ function renderResult() {
   els.accuracyMetric.textContent = `${Math.round(summary.accuracy * 100)}%`;
   els.pointsMetric.textContent = summary.points.toFixed(1);
   els.countMetric.textContent = `${summary.correct}/${summary.total}`;
+  renderScoreSyncControls(summary);
   renderReview();
+}
+
+function renderScoreSyncControls(summary) {
+  const session = state.session;
+  const userName = String(session.settings.userName || "").trim();
+  els.syncScoreStatus.classList.remove("is-success", "is-error");
+
+  if (!IS_STREAMLIT_COMPONENT) {
+    els.syncScoreButton.disabled = true;
+    els.syncScoreButton.textContent = "ランキングに保存";
+    els.syncScoreStatus.textContent = "ランキング保存はStreamlit Cloud版で利用できます。";
+    return;
+  }
+  if (!userName) {
+    els.syncScoreButton.disabled = true;
+    els.syncScoreButton.textContent = "ランキングに保存";
+    els.syncScoreStatus.textContent = "ユーザー名を入力して開始するとランキングに保存できます。";
+    return;
+  }
+  if (session.scoreSyncStatus === "pending") {
+    els.syncScoreButton.disabled = true;
+    els.syncScoreButton.textContent = "保存中...";
+    els.syncScoreStatus.textContent = "Google Sheetsへ保存しています。";
+    return;
+  }
+  if (session.scoreSyncStatus === "saved") {
+    els.syncScoreButton.disabled = true;
+    els.syncScoreButton.textContent = "ランキング保存済み";
+    els.syncScoreStatus.classList.add("is-success");
+    els.syncScoreStatus.textContent = session.scoreSyncMessage || `今回の${summary.points.toFixed(1)}点を加算しました。`;
+    return;
+  }
+  els.syncScoreButton.disabled = false;
+  els.syncScoreButton.textContent = "ランキングに保存";
+  if (session.scoreSyncStatus === "error") {
+    els.syncScoreStatus.classList.add("is-error");
+    els.syncScoreStatus.textContent = session.scoreSyncMessage || "保存に失敗しました。もう一度お試しください。";
+  } else {
+    els.syncScoreStatus.textContent = `Google Sheetsの累積得点へ${summary.points.toFixed(1)}点を加算します。`;
+  }
+}
+
+function syncScoreToSheets() {
+  const session = state.session;
+  if (!isCompleteSession(session)) {
+    return;
+  }
+  const summary = computeResultSummary(session);
+  const userName = String(session.settings.userName || "").trim();
+  if (!IS_STREAMLIT_COMPONENT) {
+    session.scoreSyncStatus = "error";
+    session.scoreSyncMessage = "ランキング保存はStreamlit Cloud版で利用できます。";
+    saveSession();
+    renderResult();
+    return;
+  }
+  if (!userName) {
+    session.scoreSyncStatus = "error";
+    session.scoreSyncMessage = "保存するにはユーザー名が必要です。";
+    saveSession();
+    renderResult();
+    return;
+  }
+  if (session.scoreSyncStatus === "saved" || session.scoreSyncStatus === "pending") {
+    return;
+  }
+  if (!session.scoreSaveId) {
+    session.scoreSaveId = `mobile-${session.id}`;
+  }
+  session.scoreSyncRequestId = createId();
+  session.scoreSyncStatus = "pending";
+  session.scoreSyncMessage = "Google Sheetsへ保存しています。";
+  saveSession();
+  renderResult();
+  streamlitHost.setComponentValue(buildScoreSyncPayload(session, summary));
+}
+
+function buildScoreSyncPayload(session, summary) {
+  const settings = session.settings || {};
+  const spartanAccuracy = session.spartanAttempts ? session.spartanCorrect / session.spartanAttempts : 0;
+  return {
+    type: "save_score",
+    requestId: session.scoreSyncRequestId,
+    saveId: session.scoreSaveId,
+    sessionId: session.id,
+    appVersion: APP_VERSION,
+    user: String(settings.userName || "").trim(),
+    mode: settings.mode === "sentence" ? "sentence" : "vocab",
+    direction: settings.direction,
+    correct: summary.correct,
+    total: summary.total,
+    accuracy: summary.accuracy,
+    points: summary.points,
+    accuracyBonus: summary.accuracyBonus,
+    rawPointsTotal: session.mainPoints + session.spartanRawPoints,
+    rawPointsMain: session.mainPoints,
+    rawPointsSpartan: session.spartanRawPoints,
+    spartanScaledPoints: session.spartanScaledPoints,
+    spartanAttempts: session.spartanAttempts,
+    spartanCorrect: session.spartanCorrect,
+    spartanAccuracy,
+    spartanMode: Boolean(settings.spartanMode),
+    groupId: settings.groupId || "",
+    seed: settings.seed,
+    pos: settings.pos || "",
+    topic: settings.topic || "",
+    subtopic: settings.subtopic || "",
+    levels: Array.isArray(settings.levels) ? settings.levels : [],
+    length: settings.length,
+    startedAt: session.startedAt,
+    completedAt: session.completedAt,
+    ts: new Date().toISOString(),
+  };
 }
 
 function renderReview() {
@@ -1282,11 +1494,11 @@ function displayOption(option, direction) {
 }
 
 function playAudio(mode, option) {
-  if (IS_STREAMLIT_COMPONENT || !option?.audioKey) {
+  const base = getAudioBaseUrl(mode);
+  if (!base || !option?.audioKey) {
     showToast("音声ファイルがありません。");
     return;
   }
-  const base = mode === "sentence" ? SENTENCE_AUDIO_BASE : VOCAB_AUDIO_BASE;
   const audio = new Audio(encodeURI(`${base}${option.audioKey}.wav`));
   audio.play().catch(() => {
     showToast("音声を再生できませんでした。");
@@ -1294,7 +1506,27 @@ function playAudio(mode, option) {
 }
 
 function hasPlayableAudio(option) {
-  return !IS_STREAMLIT_COMPONENT && Boolean(option?.hasAudio);
+  const mode = getCurrentQuestion()?.mode || state.settings.mode;
+  return hasAudioForMode(mode) && Boolean(option?.hasAudio);
+}
+
+function hasAudioForMode(mode) {
+  return Boolean(state.audioConfig.enabled && getAudioBaseUrl(mode));
+}
+
+function getAudioBaseUrl(mode) {
+  if (mode === "sentence") {
+    return state.audioConfig.sentenceBaseUrl;
+  }
+  return state.audioConfig.vocabBaseUrl;
+}
+
+function ensureTrailingSlash(value) {
+  const text = String(value || "").trim();
+  if (!text) {
+    return "";
+  }
+  return text.endsWith("/") ? text : `${text}/`;
 }
 
 function setView(view) {

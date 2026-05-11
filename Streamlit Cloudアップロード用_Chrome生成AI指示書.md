@@ -16,14 +16,19 @@
 - 秘密鍵をチャット、GitHub、README、Issue、PR本文に貼ってしまった場合、その鍵は漏洩済みとして扱い、Google Cloudで削除して新しい鍵を作り直す。
 - `node_modules/`、`__pycache__/`、`test-results/`、`playwright-report/` はアップロードしない。
 - 初回公開では、大容量の `audio/` と `Esperanto例文5000文_収録音声/` は必須扱いにしない。スマホ向けStreamlit内蔵表示では音声はオフになるため、まずアプリ公開を優先する。
+- スマホ版で音声も使う場合は、音声ファイルをGitHubへ大量投入せず、Cloud Storageなどの外部配信URLを `[mobile_audio]` としてSecretsに設定する。
 - 失敗した場合は、Streamlit Cloudのログを読んで原因を特定してから修正する。推測だけで再デプロイを繰り返さない。
 
 ### 公開対象の基本情報
 
+- GitHubリポジトリ: `https://github.com/Takatakatake/esperanto-choice-quiz-streamlit`
+- GitHubリポジトリSSH: `git@github.com:Takatakatake/esperanto-choice-quiz-streamlit.git`
+- ブランチ: `main`
 - Streamlit Cloudのメインファイル: `app.py`
 - 例文版の既存アプリ: `sentence_app.py`
 - スマホ用UI: `mobile_app/index.html`
 - Streamlit連携: `mobile_streamlit_bridge.py`
+- スマホ版スコア保存連携: `mobile_score_sync.py`
 - PWAデータ: `mobile_app/data/vocab.json`, `mobile_app/data/sentences.json`
 - 依存関係ファイル: `requirements.txt`
 - 強制スマホUI確認URL: `https://<公開URL>/?mobile_app=1`
@@ -34,10 +39,10 @@
 ### 1. GitHubリポジトリを確認する
 
 1. GitHubを開く。
-2. このアプリ用のリポジトリが既にあるか確認する。
-3. 既にある場合は、そのリポジトリを使う。
-4. ない場合は、新規リポジトリを作成する。推奨名は `esperanto-choice-quiz-streamlit`。
-5. 公開範囲は、ユーザーの希望がなければPublicでよい。Privateにする場合は、Streamlit Cloud側でGitHub連携権限が必要になる。
+2. `https://github.com/Takatakatake/esperanto-choice-quiz-streamlit` を開く。
+3. このリポジトリが存在し、`main` ブランチにアプリ一式が入っていることを確認する。
+4. 新しいリポジトリは作成しない。このリポジトリにアクセスできない場合だけ、ユーザーへ確認する。
+5. 公開範囲がPrivateの場合は、Streamlit Cloud側でGitHub連携権限が必要になる。
 
 ### 2. GitHubへ必要ファイルを入れる
 
@@ -47,6 +52,7 @@
 app.py
 sentence_app.py
 mobile_streamlit_bridge.py
+mobile_score_sync.py
 mobile-sw.js
 requirements.txt
 README.md
@@ -86,6 +92,7 @@ fuyou/
 - `requirements.txt` がリポジトリのルートにある。
 - `app.py` がリポジトリのルートにある。
 - `mobile_app/app.js`, `mobile_app/styles.css`, `mobile_app/index.html`, `mobile_app/data/vocab.json`, `mobile_app/data/sentences.json` が存在する。
+- `mobile_score_sync.py` が存在し、スマホ版の「ランキングに保存」からGoogle Sheetsへ保存できる構成になっている。
 - `.streamlit/secrets.toml` やGoogle秘密鍵JSONが含まれていない。
 
 ### 4. Streamlit Community Cloudでアプリを作成する
@@ -94,8 +101,8 @@ fuyou/
 2. ワークスペース右上の `Create app` を押す。
 3. `Yup, I have an app` を選ぶ。
 4. GitHubリポジトリ、ブランチ、メインファイルを指定する。
-   - Repository: このアプリのGitHubリポジトリ
-   - Branch: 通常は `main`
+   - Repository: `Takatakatake/esperanto-choice-quiz-streamlit`
+   - Branch: `main`
    - Main file path: `app.py`
 5. App URLは任意。覚えやすい名前を付けられる場合は、Esperanto学習アプリだと分かる名前にする。
 6. `Advanced settings` を開く。
@@ -117,6 +124,14 @@ spreadsheet = "https://docs.google.com/spreadsheets/d/1WnlZ2BACdf3uCha0JOscdk2wP
 token_uri = "https://oauth2.googleapis.com/token"
 ```
 
+スマホ版で音声を有効化する場合だけ、同じSecrets欄に次も追加する。音声ファイルは `<base_url>/<audioKey>.wav` で取得できる形にしておく。
+
+```toml
+[mobile_audio]
+vocab_base_url = "https://example.com/audio/"
+sentence_base_url = "https://example.com/sentence-audio/"
+```
+
 注意:
 
 - `private_key` の `...` は実際の秘密鍵で置き換える。
@@ -129,6 +144,8 @@ token_uri = "https://oauth2.googleapis.com/token"
   """
   ```
 - この値はGitHubに置かない。Streamlit CloudのSecrets欄だけに入れる。
+- チャット、GitHub、README、Issue、PRなどに出した可能性がある秘密鍵は使わず、Google Cloudで削除して再発行した鍵だけを使う。
+- `[mobile_audio]` は秘密鍵ではないが、音声ファイルが大量なためGitHub本体には音声フォルダを入れない。
 - AIは秘密鍵の内容を読まない。必要ならユーザーに貼り付け操作だけ依頼する。
 - Secretsを保存した後は、アプリを再起動または再デプロイし、ログにGoogle Sheets認証エラーが出ないことを確認する。
 
@@ -157,9 +174,11 @@ token_uri = "https://oauth2.googleapis.com/token"
 8. 進行中クイズがある状態で新規開始しようとすると、上書き確認が出る。
 9. 結果画面がスマホ幅で読みやすい。
 10. 成績画面がスマホ幅で読みやすく、下部ナビの `ホーム`、`クイズ`、`成績` が押せる。
-11. `?classic=1` を付けると従来のStreamlit版を確認できる。
+11. ユーザー名を入れてクイズを完了し、結果画面の `ランキングに保存` でGoogle Sheetsの累積得点・ランキングへ加算される。
+12. `[mobile_audio]` を設定した場合は、スマホ版の音声設定をオンにして再生できる。
+13. `?classic=1` を付けると従来のStreamlit版を確認できる。
 
-可能であれば、実機スマホでも同じ確認を行う。最低限、スマホ実機では「開始」「回答」「再読み込み復元」「成績画面」「下部ナビ」を確認する。
+可能であれば、実機スマホでも同じ確認を行う。最低限、スマホ実機では「開始」「回答」「再読み込み復元」「ランキングに保存」「成績画面」「下部ナビ」を確認する。`[mobile_audio]` を設定した場合は音声再生も確認する。
 
 ### 8. 作業完了時の報告形式
 
@@ -181,6 +200,8 @@ https://github.com/...
 - 回答操作
 - 再読み込み後の状態復元
 - 不正解時の復習対象保持
+- スマホ版のランキング保存
+- [mobile_audio] を設定した場合のスマホ版音声再生
 - 結果画面
 - 成績画面
 - ?classic=1 の従来版

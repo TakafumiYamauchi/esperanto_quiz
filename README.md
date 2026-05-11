@@ -29,8 +29,8 @@ http://127.0.0.1:8501/?classic=1
 - Streamlitの再読み込みやセッション切れ後も、同じ端末・同じブラウザなら進行中のクイズを復元
 - 進行中クイズがある場合は、設定画面に「続きから再開」を表示し、新規開始による上書き前に確認
 - スマホ幅で読みやすい文字サイズ、下部配置の大きい選択肢ボタン
-- 成績履歴は端末内に保存
-- 音声は静的PWAとして単独起動した場合に利用可能。Streamlit Cloud内蔵表示では、直接音声ファイル配信を避けるため音声設定をオフにします。
+- 成績履歴は端末内に保存。Streamlit Cloud内では結果画面の「ランキングに保存」からGoogle Sheetsの累積得点・ランキングにも加算
+- 音声は静的PWAとして単独起動した場合に利用可能。Streamlit Cloud内蔵表示では、`[mobile_audio]` に外部配信URLを設定した場合だけ音声設定を有効化します。
 
 ## 静的PWAとしての単独起動
 
@@ -55,6 +55,18 @@ http://127.0.0.1:8765/mobile_app/
 ```bash
 python3 tools/build_mobile_data.py
 ```
+
+## スマホ版で音声を使う場合
+
+大量の音声ファイルはGitHubへ入れず、Cloud Storageなどの外部配信先へ置きます。Streamlit CloudのSecretsに次を追加すると、スマホ版の音声選択が有効になります。
+
+```toml
+[mobile_audio]
+vocab_base_url = "https://example.com/audio/"
+sentence_base_url = "https://example.com/sentence-audio/"
+```
+
+各音声は `audioKey.wav` として参照します。
 
 ## 検証
 

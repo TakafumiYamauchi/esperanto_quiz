@@ -339,6 +339,13 @@ select {
   box-shadow: 0 7px 16px rgba(15, 122, 90, 0.22);
 }
 
+.primary-action:disabled,
+.secondary-action:disabled {
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .primary-action:active,
 .choice-button:active {
   transform: translateY(1px);
@@ -568,6 +575,28 @@ select {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin: 12px 0 18px;
+}
+
+.score-sync-button,
+.score-sync-status {
+  grid-column: 1 / -1;
+}
+
+.score-sync-status {
+  min-height: 21px;
+  margin: -2px 0 2px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.score-sync-status.is-success {
+  color: var(--success);
+}
+
+.score-sync-status.is-error {
+  color: var(--danger);
 }
 
 .review-section h3,

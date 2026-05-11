@@ -12,7 +12,8 @@
 - PWA用データ: `mobile_app/data/vocab.json`, `mobile_app/data/sentences.json`
 - スマホ状態保存: ブラウザの `localStorage`
 - 進行中クイズの保護: 再開導線を表示し、新規開始で上書きする前に確認
-- 音声: 静的PWA単独起動では利用可。Streamlit Cloud内蔵表示では音声ファイルの直接配信を避けるためオフ。
+- スマホ版スコア保存: 結果画面の「ランキングに保存」から `mobile_score_sync.py` 経由でGoogle Sheetsの `Scores` / `UserStats` / `UserStatsSentence` に反映
+- 音声: 静的PWA単独起動では利用可。Streamlit Cloud内蔵表示では、`[mobile_audio]` に外部配信URLを設定した場合だけ有効。
 
 Streamlitの静的ファイル配信はHTML/JSアプリ配信向けではないため、Streamlit Cloudではカスタムコンポーネントとして埋め込みます。CSV更新後は次を実行してJSONを更新します。
 
@@ -58,14 +59,29 @@ https://<your-app>.streamlit.app/?classic=1
    ```
 4. 保存後にアプリを再起動または再デプロイし、ログにGoogle Sheets認証エラーが出ないことを確認する。
 
+## 2.1. スマホ版音声を有効化する場合
+音声ファイルをGitHubへ大量投入せず、Cloud Storageなどの外部配信先へ配置する。各ファイルは `<base_url>/<audioKey>.wav` で取得できる形にする。
+
+Streamlit Cloud の **Settings** → **Secrets** に、必要な場合だけ次を追加する。
+
+```toml
+[mobile_audio]
+vocab_base_url = "https://example.com/audio/"
+sentence_base_url = "https://example.com/sentence-audio/"
+```
+
+この設定が空の場合、スマホ版の音声選択はオフのままになる。PC/従来版は従来通り `st.audio()` で音声を扱う。
+
 ## 3. 動作確認（手順）
 1. デプロイされたアプリをスマホで開き、スマホUIが表示されることを確認。
 2. 任意のユーザー名でクイズを開始し、数問回答する。
 3. ブラウザを再読み込みし、進行中のクイズが復元されることを確認。
 4. 不正解を出した場合、復習対象が保持されることを確認。
 5. 設定画面へ戻った場合に「続きから再開」が表示され、新規開始時に上書き確認が出ることを確認。
-6. 結果画面と成績画面がスマホ幅で読みやすいことを確認。
-7. 従来版を確認する場合は `?classic=1` を付けて開く。
+6. ユーザー名を入れた状態で完了し、結果画面の「ランキングに保存」でGoogle Sheetsの累積得点に加算されることを確認。
+7. `[mobile_audio]` を設定した場合は、スマホ版の音声設定をオンにして再生できることを確認。
+8. 結果画面と成績画面がスマホ幅で読みやすいことを確認。
+9. 従来版を確認する場合は `?classic=1` を付けて開く。
 
 ## 4. ローカルの鍵ファイルの扱い
 - 作業後は鍵ファイルを安全な場所に移動するか削除する。

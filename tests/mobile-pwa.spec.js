@@ -135,6 +135,8 @@ test("mobile result and history stay readable", async ({ page }) => {
   await answerRemainingCorrectly(page, page);
   await expect(page.locator("#resultView")).toHaveClass(/is-active/);
   await expect(page.locator("#accuracyMetric")).toHaveText("100%");
+  await expect(page.locator("#syncScoreButton")).toBeDisabled();
+  await expect(page.locator("#syncScoreStatus")).toContainText("Streamlit Cloud版");
   await expect(page.locator("#reviewList .review-item").first()).toBeVisible();
 
   const resultMetrics = await page.evaluate(() => {

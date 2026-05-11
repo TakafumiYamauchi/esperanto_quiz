@@ -33,6 +33,8 @@ test("Streamlit mobile entry uses the localStorage app and survives reload", asy
 
   await page.goto(appUrl, { waitUntil: "domcontentloaded" });
   const mobileApp = page.frameLocator("iframe[title*='esperanto_mobile_pwa']");
+  await expect(mobileApp.locator("#startButton")).toBeEnabled({ timeout: 15000 });
+  await mobileApp.locator("#homeNav").click();
   await expect(mobileApp.locator("#setupView")).toHaveClass(/is-active/);
 
   await mobileApp.locator("#modeSentence").click();
@@ -138,7 +140,10 @@ test("Streamlit mobile result and history stay readable", async ({ page }) => {
 
   await page.goto(appUrl, { waitUntil: "domcontentloaded" });
   const mobileApp = page.frameLocator("iframe[title*='esperanto_mobile_pwa']");
+  await expect(mobileApp.locator("#startButton")).toBeEnabled({ timeout: 15000 });
+  await mobileApp.locator("#homeNav").click();
   await expect(mobileApp.locator("#setupView")).toHaveClass(/is-active/);
+  await mobileApp.locator("#userName").fill("streamlit-score-test");
   await mobileApp.locator("#lengthSelect").selectOption("10");
   await mobileApp.locator("#spartanMode").uncheck();
   await mobileApp.locator("#startButton").scrollIntoViewIfNeeded();
@@ -148,6 +153,8 @@ test("Streamlit mobile result and history stay readable", async ({ page }) => {
   await answerRemainingCorrectly(page, mobileApp);
   await expect(mobileApp.locator("#resultView")).toHaveClass(/is-active/);
   await expect(mobileApp.locator("#accuracyMetric")).toHaveText("100%");
+  await expect(mobileApp.locator("#syncScoreButton")).toBeEnabled();
+  await expect(mobileApp.locator("#syncScoreStatus")).toContainText("累積得点");
   await expect(mobileApp.locator("#reviewList .review-item").first()).toBeVisible();
 
   const resultMetrics = await mobileApp.locator("body").evaluate(() => {
