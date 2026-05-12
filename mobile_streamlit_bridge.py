@@ -10,6 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent
 MOBILE_APP_DIR = BASE_DIR / "mobile_app"
 MOBILE_AUDIO_MANIFEST = MOBILE_APP_DIR / "data" / "audio_manifest.json"
 DRIVE_AUDIO_DOWNLOAD_BASE = "https://drive.google.com/uc?export=download&id="
+COMPONENT_VOCAB_AUDIO_BASE = "./audio/"
+COMPONENT_SENTENCE_AUDIO_BASE = "./sentence-audio/"
 
 _mobile_component = components.declare_component(
     "esperanto_mobile_pwa",
@@ -41,8 +43,8 @@ def _mobile_audio_config() -> dict:
         config = dict(st.secrets.get("mobile_audio", {}))
     except Exception:
         config = {}
-    vocab_base_url = str(config.get("vocab_base_url", "")).strip()
-    sentence_base_url = str(config.get("sentence_base_url", "")).strip()
+    vocab_base_url = str(config.get("vocab_base_url", "")).strip() or COMPONENT_VOCAB_AUDIO_BASE
+    sentence_base_url = str(config.get("sentence_base_url", "")).strip() or COMPONENT_SENTENCE_AUDIO_BASE
     drive_download_base_url = str(config.get("drive_download_base_url", "")).strip() or DRIVE_AUDIO_DOWNLOAD_BASE
     manifest_available = MOBILE_AUDIO_MANIFEST.exists()
     enabled = bool(vocab_base_url or sentence_base_url or manifest_available)

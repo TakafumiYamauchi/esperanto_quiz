@@ -1587,12 +1587,15 @@ function getAudioUrl(mode, option) {
   if (!state.audioConfig.enabled || !option?.audioKey) {
     return "";
   }
+  const base = getAudioBaseUrl(mode);
+  if (base) {
+    return encodeURI(`${base}${option.audioKey}.wav`);
+  }
   const fileId = getAudioManifestFileId(mode, option.audioKey);
   if (fileId) {
     return buildDriveAudioUrl(fileId);
   }
-  const base = getAudioBaseUrl(mode);
-  return base ? encodeURI(`${base}${option.audioKey}.wav`) : "";
+  return "";
 }
 
 function getAudioBaseUrl(mode) {

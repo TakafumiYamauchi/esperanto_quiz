@@ -74,6 +74,13 @@ test("Streamlit mobile entry uses the localStorage app and survives reload", asy
   await expect(mobileApp.locator("#quizView")).toHaveClass(/is-active/);
   await expect(mobileApp.locator(".choice-button").first()).toBeVisible();
   await expect(mobileApp.locator("#promptAudioButton")).toBeVisible();
+  const audioRequestPromise = page.waitForRequest(
+    (request) => /\/component\/mobile_streamlit_bridge\.esperanto_mobile_pwa\/(audio|sentence-audio)\/.+\.wav$/.test(request.url()),
+    { timeout: 5000 },
+  );
+  await mobileApp.locator("#promptAudioButton").click();
+  const audioRequest = await audioRequestPromise;
+  expect(audioRequest.url()).not.toContain("drive.google");
 
   const quizMetrics = await mobileApp.locator("body").evaluate(() => {
     const grid = document.querySelector("#choiceGrid");

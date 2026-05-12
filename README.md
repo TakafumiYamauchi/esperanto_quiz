@@ -30,7 +30,7 @@ http://127.0.0.1:8501/?classic=1
 - 進行中クイズがある場合は、設定画面に「続きから再開」を表示し、新規開始による上書き前に確認
 - スマホ幅で読みやすい文字サイズ、下部配置の大きい選択肢ボタン
 - 成績履歴は端末内に保存。Streamlit Cloud内では結果画面の「ランキングに保存」からGoogle Sheetsの累積得点・ランキングにも加算
-- スマホ版でも音声再生に対応。音声本体はGitHubへ入れず、`mobile_app/data/audio_manifest.json` のGoogle DriveファイルID対応表から直接再生します。
+- スマホ版でも音声再生に対応。Streamlit Cloudでは `mobile_app/audio/` と `mobile_app/sentence-audio/` をコンポーネント配下から同一オリジン配信し、Google Drive manifestはフォールバックとして使います。
 
 ## 静的PWAとしての単独起動
 
@@ -58,15 +58,15 @@ python3 tools/build_mobile_data.py
 
 ## スマホ版で音声を使う場合
 
-大量の音声ファイルはGitHubへ入れません。現在は公開Google Driveフォルダから生成した `mobile_app/data/audio_manifest.json` を同梱し、スマホ版が `audioKey` からDriveのファイルIDを引いて再生します。Streamlit CloudのSecrets追加は不要です。
+Streamlit Cloud内蔵のスマホ版では、`mobile_app/audio/` と `mobile_app/sentence-audio/` の音声ファイルを直接再生します。Google Drive直リンクはスマホブラウザやiframe内で不安定になる場合があるため、現在は同一オリジン配信を優先し、`mobile_app/data/audio_manifest.json` はフォールバックとして使います。Streamlit CloudのSecrets追加は不要です。
 
-Driveフォルダの中身を更新した場合は、次を実行して対応表を再生成します。
+Driveフォルダの中身を更新した場合は、必要に応じて次を実行してフォールバック用の対応表を再生成します。
 
 ```bash
 python3 tools/build_drive_audio_manifest.py
 ```
 
-必要な場合だけ、Streamlit CloudのSecretsでDrive直リンクのベースURLや外部配信URLを上書きできます。
+必要な場合だけ、Streamlit CloudのSecretsで外部配信URLを上書きできます。
 
 ```toml
 [mobile_audio]
@@ -75,7 +75,7 @@ vocab_base_url = "https://example.com/audio/"
 sentence_base_url = "https://example.com/sentence-audio/"
 ```
 
-通常は `drive_download_base_url` だけで十分です。`vocab_base_url` / `sentence_base_url` は、Cloud Storageなどで `<base_url>/<audioKey>.wav` として配信する場合のフォールバックです。
+`vocab_base_url` / `sentence_base_url` は、Cloud Storageなどで `<base_url>/<audioKey>.wav` として配信する場合だけ指定します。
 
 ## 検証
 
