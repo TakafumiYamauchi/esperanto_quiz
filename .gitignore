@@ -1,65 +1,11 @@
-# Python caches
-__pycache__/
-*.py[cod]
-*.pyo
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-coverage.xml
-htmlcov/
-
-# OS noise
-.DS_Store
-*:Zone.Identifier
-
-# Local Python environments
-.venv/
-venv/
-env/
-ENV/
-
-# Node/Playwright test artifacts
-node_modules/
-test-results/
-playwright-report/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Build artifacts
-dist/
-build/
-*.egg-info/
-
-# Large local assets that are not needed for the first Streamlit Cloud deploy
-audio/
-Esperanto例文5000文_収録音声/
-エスペラント例文5000枚のイメージ画像_jpeg_q80/
-PIV2020.html
-PIV2020_structured.txt
-４択アプリをブラッシュアップするためのエスペラントプロンプト.docx
-
-# Local archives and working logs
-fuyou/
-編集ログ/
-git-helper-cross-platform-bundle/
-
-# Streamlit secrets (do not commit real credentials)
+# Secrets and local credentials
 .streamlit/secrets.toml
 .streamlit/secrets.*.toml
 !.streamlit/secrets.example.toml
-
-# Local env files
 .env
 .env.*
 !.env.example
-
-# Google service account keys (keep out of VCS)
 gen-lang-client-*.json
-gen-lang-client-*.json:Zone.Identifier
-*.serviceaccount.json
 *service-account*.json
 *service_account*.json
 *credentials*.json
@@ -69,3 +15,30 @@ google-credentials*.json
 *.key
 *.p12
 *.p8
+
+# Generated dependencies and test output
+__pycache__/
+*.py[cod]
+node_modules/
+test-results/
+playwright-report/
+.venv/
+venv/
+
+# Large local assets
+audio/
+Esperanto例文5000文_収録音声/
+エスペラント例文5000枚のイメージ画像_jpeg_q80/
+PIV2020.html
+PIV2020_structured.txt
+
+# Local notes and working folders
+Streamlit Cloudアップロード用_Chrome生成AI指示書.md
+４択アプリをブラッシュアップするためのエスペラントプロンプト.docx
+fuyou/
+編集ログ/
+git-helper-cross-platform-bundle/
+
+# OS noise
+.DS_Store
+*:Zone.Identifier
