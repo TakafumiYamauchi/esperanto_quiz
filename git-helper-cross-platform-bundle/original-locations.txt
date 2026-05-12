@@ -1,0 +1,11 @@
+Copied canonical files from:
+C:\Users\n_c-k\Documents\Esperanto_HTML文書\esperanto_html
+
+Related repositories checked:
+C:\Users\n_c-k\Documents\Esperanto_HTML文書\esperanto_html
+C:\Users\n_c-k\Documents\Esperanto_HTML文書\京大エス研html文書＿Github
+C:\Users\n_c-k\Documents\Esperanto_HTML文書\京大エス研html文書＿Github＿実際にHTMLを作成する場所_クラウド用意外と使わないかも
+C:\Users\n_c-k\Documents\Esperanto_HTML文書\京大エス研html文書＿Github＿旧版
+
+Bundle destination:
+C:\Users\n_c-k\Documents\Esperanto_HTML文書\git-helper-cross-platform-bundle
