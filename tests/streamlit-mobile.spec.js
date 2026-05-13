@@ -194,6 +194,8 @@ test("Streamlit mobile result and history stay readable", async ({ page }) => {
 
   await mobileApp.locator("#historyNav").click();
   await expect(mobileApp.locator("#historyView")).toHaveClass(/is-active/);
+  await expect(mobileApp.locator("#cloudRankingTitle")).toBeVisible();
+  await expect(mobileApp.locator("#rankingStatus")).toHaveText(/ランキング|Google Sheets|取得|更新/, { timeout: 20000 });
   await expect(mobileApp.locator("#historyList .history-item").first()).toContainText("単語");
   expect(errors).toEqual([]);
 });

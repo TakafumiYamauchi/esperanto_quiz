@@ -146,6 +146,17 @@ test("mobile result and history stay readable", async ({ page }) => {
 
   const appUrl = process.env.MOBILE_APP_URL || "http://127.0.0.1:8765/mobile_app/";
   await page.goto(appUrl, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    let historyFailures = 0;
+    Storage.prototype.setItem = function patchedSetItem(key, value) {
+      if (String(key).includes(":history") && historyFailures < 1) {
+        historyFailures += 1;
+        throw new DOMException("Quota exceeded", "QuotaExceededError");
+      }
+      return original.call(this, key, value);
+    };
+  });
   await page.locator("#lengthSelect").selectOption("10");
   await page.locator("#spartanMode").uncheck();
   await page.locator("#startButton").scrollIntoViewIfNeeded();
@@ -176,6 +187,7 @@ test("mobile result and history stay readable", async ({ page }) => {
 
   await page.locator("#historyNav").click();
   await expect(page.locator("#historyView")).toHaveClass(/is-active/);
+  await expect(page.locator("#rankingStatus")).toContainText("Streamlit Cloud版");
   await expect(page.locator("#historyList .history-item").first()).toContainText("単語");
   await expect(errors).toEqual([]);
 });

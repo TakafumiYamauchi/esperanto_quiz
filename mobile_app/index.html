@@ -174,6 +174,22 @@
             <h2>成績</h2>
             <button id="clearHistoryButton" class="text-button" type="button">消去</button>
           </div>
+          <section id="cloudRankingSection" class="cloud-ranking-section" aria-labelledby="cloudRankingTitle">
+            <div class="ranking-title-row">
+              <div>
+                <h3 id="cloudRankingTitle">ランキング</h3>
+                <p id="rankingStatus" role="status" aria-live="polite">読み込み前</p>
+              </div>
+              <button id="rankingRefreshButton" class="text-button" type="button">更新</button>
+            </div>
+            <div class="ranking-tabs" role="tablist" aria-label="ランキング種別">
+              <button class="is-selected" type="button" data-ranking-tab="overall" role="tab" aria-selected="true">累積</button>
+              <button type="button" data-ranking-tab="today" role="tab" aria-selected="false">本日</button>
+              <button type="button" data-ranking-tab="month" role="tab" aria-selected="false">今月</button>
+              <button type="button" data-ranking-tab="hof" role="tab" aria-selected="false">殿堂</button>
+            </div>
+            <div id="rankingList" class="ranking-list"></div>
+          </section>
           <div id="historyList" class="history-list"></div>
         </section>
 

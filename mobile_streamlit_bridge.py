@@ -3,6 +3,7 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
+from mobile_ranking import load_mobile_rankings_request
 from mobile_score_sync import save_mobile_score_request
 
 
@@ -70,6 +71,8 @@ def render_mobile_app_entry(is_mobile: bool, *, source: str) -> bool:
 
     st.session_state.setdefault("mobile_score_sync_result", None)
     st.session_state.setdefault("mobile_score_sync_processed", {})
+    st.session_state.setdefault("mobile_ranking_result", None)
+    st.session_state.setdefault("mobile_ranking_processed", {})
 
     st.markdown(
         """
@@ -107,6 +110,7 @@ def render_mobile_app_entry(is_mobile: bool, *, source: str) -> bool:
     component_value = _mobile_component(
         source=source,
         scoreSyncResult=st.session_state.mobile_score_sync_result,
+        rankingResult=st.session_state.mobile_ranking_result,
         audioConfig=_mobile_audio_config(),
         default=None,
         key=f"esperanto_mobile_pwa_{source}",
@@ -118,6 +122,17 @@ def render_mobile_app_entry(is_mobile: bool, *, source: str) -> bool:
         if request_id and request_id not in processed:
             result = save_mobile_score_request(component_value)
             st.session_state.mobile_score_sync_result = result
+            processed[request_id] = bool(result.get("ok"))
+            if len(processed) > 100:
+                for key in list(processed.keys())[:-100]:
+                    processed.pop(key, None)
+            st.rerun()
+    if isinstance(component_value, dict) and component_value.get("type") == "load_rankings":
+        request_id = str(component_value.get("requestId", "")).strip()
+        processed = st.session_state.mobile_ranking_processed
+        if request_id and request_id not in processed:
+            result = load_mobile_rankings_request(component_value)
+            st.session_state.mobile_ranking_result = result
             processed[request_id] = bool(result.get("ok"))
             if len(processed) > 100:
                 for key in list(processed.keys())[:-100]:

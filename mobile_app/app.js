@@ -1,4 +1,4 @@
-const APP_VERSION = "2026-05-13-mobile-review-audio-5000-score-retry-1";
+const APP_VERSION = "2026-05-13-mobile-ranking-cache-recovery-1";
 const STORAGE_PREFIX = "esperanto-choice-mobile";
 const SESSION_KEY = `${STORAGE_PREFIX}:session:v2`;
 const SETTINGS_KEY = `${STORAGE_PREFIX}:settings:v2`;
@@ -29,6 +29,9 @@ const SENTENCE_STREAK_SCALE = 2.0;
 const VOCAB_ACCURACY_BONUS = 5.0;
 const SENTENCE_ACCURACY_BONUS = 10.0;
 const SPARTAN_SCORE_MULTIPLIER = 0.7;
+const HISTORY_MAX_ITEMS = 100;
+const HISTORY_RECOVERY_LIMITS = [50, 20, 5, 0];
+const RANKING_CACHE_TTL_MS = 120000;
 
 const POS_LABELS = {
   noun: "名詞",
@@ -160,6 +163,11 @@ const els = {
   newQuizButton: document.querySelector("#newQuizButton"),
   reviewList: document.querySelector("#reviewList"),
   historyList: document.querySelector("#historyList"),
+  cloudRankingSection: document.querySelector("#cloudRankingSection"),
+  rankingStatus: document.querySelector("#rankingStatus"),
+  rankingRefreshButton: document.querySelector("#rankingRefreshButton"),
+  rankingTabs: document.querySelectorAll("[data-ranking-tab]"),
+  rankingList: document.querySelector("#rankingList"),
   clearHistoryButton: document.querySelector("#clearHistoryButton"),
   homeNav: document.querySelector("#homeNav"),
   quizNav: document.querySelector("#quizNav"),
@@ -183,6 +191,7 @@ const state = {
   frameHeightTimer: null,
   lastFrameHeight: 0,
   latestScoreSyncResult: null,
+  rankings: createEmptyRankingsState(),
   audioPlayer: null,
   audioPlaybackToken: 0,
   autoPromptAudioAllowedUntil: 0,
@@ -305,6 +314,13 @@ function bindEvents() {
       renderHistory();
     }
   });
+  els.rankingRefreshButton.addEventListener("click", () => requestRankings({ force: true }));
+  els.rankingTabs.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.rankings.activeTab = button.dataset.rankingTab || "overall";
+      renderCloudRankings();
+    });
+  });
 
   els.homeNav.addEventListener("click", () => setView("setup"));
   els.quizNav.addEventListener("click", () => {
@@ -324,6 +340,7 @@ function bindEvents() {
   els.historyNav.addEventListener("click", () => {
     renderHistory();
     setView("history");
+    requestRankings();
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -365,6 +382,10 @@ function installStreamlitMessageHandler() {
     const result = message.args?.scoreSyncResult;
     if (result) {
       handleScoreSyncResult(result);
+    }
+    const rankingResult = message.args?.rankingResult;
+    if (rankingResult) {
+      handleRankingResult(rankingResult);
     }
   });
 }
@@ -424,6 +445,24 @@ function createEmptyAudioManifest() {
   };
 }
 
+function createEmptyRankingsState() {
+  return {
+    status: "idle",
+    activeTab: "overall",
+    requestId: "",
+    message: "",
+    updatedAt: "",
+    loadedAt: 0,
+    rankings: {
+      overall: [],
+      today: [],
+      month: [],
+      hof: [],
+    },
+    own: {},
+  };
+}
+
 function sanitizeAudioManifest(payload) {
   const manifest = isPlainObject(payload) ? payload : {};
   return {
@@ -460,11 +499,36 @@ function handleScoreSyncResult(result) {
   session.scoreSyncStatus = result.ok ? "saved" : "error";
   session.scoreSyncMessage = String(result.message || (result.ok ? "ランキングに保存しました。" : "保存に失敗しました。"));
   state.latestScoreSyncResult = result;
+  if (result.ok) {
+    state.rankings.loadedAt = 0;
+  }
   state.scoreSyncRetryQueuedFor = "";
   window.clearTimeout(state.scoreSyncRetryTimeout);
   saveSession();
   if (state.currentView === "result") {
     renderResult();
+  }
+  if (result.ok && state.currentView === "history") {
+    requestRankings({ force: true });
+  }
+}
+
+function handleRankingResult(result) {
+  if (!isPlainObject(result) || result.type !== "rankings_result") {
+    return;
+  }
+  const resultRequestId = String(result.requestId || "");
+  if (state.rankings.requestId && resultRequestId && resultRequestId !== state.rankings.requestId) {
+    return;
+  }
+  state.rankings.status = result.ok ? "ready" : "error";
+  state.rankings.message = String(result.message || (result.ok ? "ランキングを更新しました。" : "ランキングを取得できませんでした。"));
+  state.rankings.updatedAt = String(result.updatedAt || new Date().toISOString());
+  state.rankings.loadedAt = Date.now();
+  state.rankings.rankings = sanitizeRankingsPayload(result.rankings);
+  state.rankings.own = isPlainObject(result.own) ? result.own : {};
+  if (state.currentView === "history") {
+    renderCloudRankings();
   }
 }
 
@@ -696,7 +760,7 @@ function sanitizeHistory(value) {
       points: finiteNumber(record.points, 0),
       completedAt: String(record.completedAt || ""),
     }))
-    .slice(0, 100);
+    .slice(0, HISTORY_MAX_ITEMS);
 }
 
 function isValidQuestion(question) {
@@ -722,15 +786,62 @@ function isValidAnswer(answer, questionCount) {
   );
 }
 
-function writeJson(key, value) {
+function writeJson(key, value, { allowRecovery = true } = {}) {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch (error) {
     console.warn(`Failed to write ${key}`, error);
+    if (allowRecovery && recoverLocalStorageWrite(key, value, error)) {
+      return true;
+    }
     updateSaveStatus("保存できません");
     return false;
   }
+}
+
+function recoverLocalStorageWrite(key, value, error) {
+  if (!isQuotaExceededError(error)) {
+    return false;
+  }
+  if (key === HISTORY_KEY && Array.isArray(value)) {
+    for (const limit of HISTORY_RECOVERY_LIMITS) {
+      const trimmed = value.slice(0, limit);
+      try {
+        window.localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+        state.history = trimmed;
+        updateSaveStatus("履歴を整理して保存済み");
+        showToast("端末保存容量が足りないため、古い成績履歴を整理しました。");
+        return true;
+      } catch (retryError) {
+        console.warn(`Failed to recover ${HISTORY_KEY} with ${limit} items`, retryError);
+      }
+    }
+    return false;
+  }
+  try {
+    window.localStorage.removeItem(HISTORY_KEY);
+    state.history = [];
+    window.localStorage.setItem(key, JSON.stringify(value));
+    updateSaveStatus("履歴を整理して保存済み");
+    showToast("端末保存容量が足りないため、成績履歴を整理してクイズ状態を保存しました。");
+    return true;
+  } catch (retryError) {
+    console.warn(`Failed to recover ${key}`, retryError);
+    return false;
+  }
+}
+
+function isQuotaExceededError(error) {
+  return Boolean(
+    error
+    && (
+      error.name === "QuotaExceededError"
+      || error.name === "NS_ERROR_DOM_QUOTA_REACHED"
+      || error.code === 22
+      || error.code === 1014
+    ),
+  );
 }
 
 function saveSettings() {
@@ -755,7 +866,68 @@ function queueSessionSave() {
 }
 
 function saveHistory() {
-  writeJson(HISTORY_KEY, state.history.slice(0, 100));
+  state.history = state.history.slice(0, HISTORY_MAX_ITEMS);
+  writeJson(HISTORY_KEY, state.history);
+}
+
+function requestRankings({ force = false } = {}) {
+  if (!IS_STREAMLIT_COMPONENT) {
+    state.rankings.status = "unavailable";
+    state.rankings.message = "ランキング表示はStreamlit Cloud版で利用できます。";
+    renderCloudRankings();
+    return;
+  }
+  const now = Date.now();
+  if (
+    !force
+    && state.rankings.status === "ready"
+    && state.rankings.loadedAt
+    && now - state.rankings.loadedAt < RANKING_CACHE_TTL_MS
+  ) {
+    renderCloudRankings();
+    return;
+  }
+  if (state.rankings.status === "loading") {
+    renderCloudRankings();
+    return;
+  }
+  state.rankings.status = "loading";
+  state.rankings.requestId = createId();
+  state.rankings.message = "Google Sheetsからランキングを取得しています。";
+  renderCloudRankings();
+  streamlitHost.setComponentValue({
+    type: "load_rankings",
+    requestId: state.rankings.requestId,
+    user: String(state.settings.userName || "").trim(),
+    appVersion: APP_VERSION,
+    ts: new Date().toISOString(),
+  });
+}
+
+function sanitizeRankingsPayload(payload) {
+  const source = isPlainObject(payload) ? payload : {};
+  return {
+    overall: sanitizeRankingRows(source.overall),
+    today: sanitizeRankingRows(source.today),
+    month: sanitizeRankingRows(source.month),
+    hof: sanitizeRankingRows(source.hof),
+  };
+}
+
+function sanitizeRankingRows(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .filter(isPlainObject)
+    .map((row) => ({
+      rank: clampInteger(row.rank, 1, 999999, 1),
+      user: String(row.user || "").trim(),
+      points: finiteNumber(row.points, 0),
+      isCurrentUser: Boolean(row.isCurrentUser),
+    }))
+    .filter((row) => row.user)
+    .slice(0, 30);
 }
 
 function normalizeSettings() {
@@ -1319,7 +1491,7 @@ function finishSession() {
       points: summary.points,
       completedAt: session.completedAt,
     });
-    state.history = state.history.slice(0, 100);
+    state.history = state.history.slice(0, HISTORY_MAX_ITEMS);
     session.savedToHistory = true;
     saveHistory();
   }
@@ -1546,7 +1718,91 @@ function renderReview() {
   );
 }
 
+function renderCloudRankings() {
+  const tab = state.rankings.activeTab || "overall";
+  els.rankingTabs.forEach((button) => {
+    const selected = button.dataset.rankingTab === tab;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-selected", String(selected));
+  });
+
+  if (state.rankings.status === "loading") {
+    els.rankingRefreshButton.disabled = true;
+    els.rankingStatus.textContent = state.rankings.message || "ランキングを取得しています。";
+    els.rankingList.replaceChildren(createRankingMessage("読み込み中です。"));
+    requestFrameHeightSync();
+    return;
+  }
+
+  els.rankingRefreshButton.disabled = false;
+  if (state.rankings.status === "idle") {
+    els.rankingStatus.textContent = "未更新";
+    els.rankingList.replaceChildren(createRankingMessage("更新を押すとランキングを取得します。"));
+    requestFrameHeightSync();
+    return;
+  }
+  if (state.rankings.status === "unavailable" || state.rankings.status === "error") {
+    els.rankingStatus.textContent = state.rankings.message || "ランキングを取得できませんでした。";
+    els.rankingList.replaceChildren(createRankingMessage("Streamlit CloudのSecrets設定とGoogle Sheets共有権限を確認してください。"));
+    requestFrameHeightSync();
+    return;
+  }
+
+  const updatedAt = state.rankings.updatedAt ? formatDate(state.rankings.updatedAt) : "";
+  els.rankingStatus.textContent = updatedAt
+    ? `${state.rankings.message || "ランキングを更新しました。"} / ${updatedAt}`
+    : state.rankings.message || "ランキングを更新しました。";
+  const rows = state.rankings.rankings[tab] || [];
+  if (!rows.length) {
+    els.rankingList.replaceChildren(createRankingMessage(`${rankingTabLabel(tab)}のランキングはまだありません。`));
+    requestFrameHeightSync();
+    return;
+  }
+  els.rankingList.replaceChildren(...rows.map((row) => createRankingItem(row)));
+  requestFrameHeightSync();
+}
+
+function createRankingMessage(message) {
+  const item = document.createElement("div");
+  item.className = "ranking-item ranking-message";
+  const text = document.createElement("p");
+  text.textContent = message;
+  item.append(text);
+  return item;
+}
+
+function createRankingItem(row) {
+  const item = document.createElement("article");
+  item.className = "ranking-item";
+  item.classList.toggle("is-current", Boolean(row.isCurrentUser));
+  const rank = document.createElement("div");
+  rank.className = "ranking-rank";
+  rank.textContent = String(row.rank);
+  const user = document.createElement("div");
+  user.className = "ranking-user";
+  const name = document.createElement("strong");
+  name.textContent = row.user;
+  const note = document.createElement("p");
+  note.textContent = row.isCurrentUser ? "あなた" : "";
+  user.append(name, note);
+  const points = document.createElement("div");
+  points.className = "ranking-points";
+  points.textContent = `${Number(row.points || 0).toFixed(1)}点`;
+  item.append(rank, user, points);
+  return item;
+}
+
+function rankingTabLabel(tab) {
+  return {
+    overall: "累積",
+    today: "本日",
+    month: "今月",
+    hof: "殿堂",
+  }[tab] || "累積";
+}
+
 function renderHistory() {
+  renderCloudRankings();
   if (!state.history.length) {
     const empty = document.createElement("div");
     empty.className = "history-item";

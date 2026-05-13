@@ -1,6 +1,7 @@
-const CACHE_VERSION = "esperanto-mobile-pwa-2026-05-13-4";
+const CACHE_VERSION = "esperanto-mobile-pwa-2026-05-13-5";
 const APP_CACHE = `${CACHE_VERSION}:app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}:runtime`;
+const RUNTIME_CACHE_MAX_ENTRIES = 400;
 
 const APP_SHELL = [
   "./mobile_app/index.html",
@@ -70,9 +71,19 @@ async function cacheFirst(request, cacheName) {
   const response = await fetch(request);
   if (response.ok) {
     const cache = await caches.open(cacheName);
-    cache.put(request, response.clone());
+    await cache.put(request, response.clone());
+    await trimCache(cacheName, RUNTIME_CACHE_MAX_ENTRIES);
   }
   return response;
+}
+
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length <= maxEntries) {
+    return;
+  }
+  await Promise.all(keys.slice(0, keys.length - maxEntries).map((key) => cache.delete(key)));
 }
 
 async function networkFirst(request) {
