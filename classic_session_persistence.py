@@ -133,7 +133,8 @@ def render_classic_session_restore_prompt(app_kind: str, target_lang: str = "ja"
     labels = _classic_text(target_lang)
     st.warning(labels["restore_warning"])
     st.caption(describe_classic_session_snapshot(snapshot))
-    col_restore, col_discard = st.columns(2)
+    # Keep this action pair close without touching the global quiz button styles.
+    col_restore, col_discard, _ = st.columns([1, 1, 0.8], gap="small")
     if col_restore.button(labels["restore_button"], key=f"classic_restore_{app}", type="primary"):
         if apply_classic_session_snapshot(snapshot, expected_app_kind=app, expected_target_lang=target_lang):
             _forget_candidate(app)
