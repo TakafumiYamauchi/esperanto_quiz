@@ -25,6 +25,12 @@ from score_sync_service import append_score_record, update_overall_user_stats
 from score_row_utils import normalize_score_rows
 from mobile_streamlit_bridge import render_mobile_app_entry
 from classic_navigation import get_classic_quiz_mode, render_classic_mode_switch
+from classic_session_persistence import (
+    render_classic_session_loader,
+    render_classic_session_restore_prompt,
+    render_classic_session_writer,
+    request_classic_session_clear,
+)
 import vocab_grouping as vg
 
 # パス設定
@@ -939,6 +945,12 @@ def main(*, set_page_config_once: bool = True):
         unsafe_allow_html=True
     )
 
+    render_classic_session_loader("vocab", target_lang="ja")
+    render_classic_session_restore_prompt("vocab", target_lang="ja")
+
+    def persist_classic_session():
+        render_classic_session_writer("vocab", target_lang="ja")
+
     show_intro_block = not (compact_ui and bool(st.session_state.get("questions")))
     if show_intro_block:
         render_classic_mode_switch("vocab", "ja")
@@ -1038,6 +1050,7 @@ def main(*, set_page_config_once: bool = True):
         st.markdown("---")
         # ホームに戻るボタンをクイズ開始ボタンと同様に横幅可変にし、見た目を揃える
         if st.button("🏠 ホームに戻る", use_container_width=True, type="primary", key="home-btn"):
+            request_classic_session_clear("vocab")
             st.session_state.questions = []
             st.session_state.group_id = None
             st.session_state.q_index = 0
@@ -1146,6 +1159,7 @@ def main(*, set_page_config_once: bool = True):
     if st.session_state.questions:
         q0 = st.session_state.questions[0]
         if "prompt" not in q0 or "options" not in q0 or "answer_index" not in q0:
+            request_classic_session_clear("vocab")
             st.session_state.questions = []
             st.session_state.q_index = 0
             st.session_state.correct = 0
@@ -1186,6 +1200,7 @@ def main(*, set_page_config_once: bool = True):
             st.subheader("ランキング（全体: 単語+文章）")
             ranking_rows, ranking_rows_status = get_overall_rankings()
             show_rankings(ranking_rows, score_rows=scores, status=ranking_rows_status)
+        persist_classic_session()
         render_cross_language_footer("vocab_ja")
         return
 
@@ -1413,6 +1428,7 @@ def main(*, set_page_config_once: bool = True):
                 rng = random.Random()
                 start_quiz(group, rng=rng)
                 st.rerun()
+        persist_classic_session()
         render_cross_language_footer("vocab_ja")
         return
 
@@ -1520,6 +1536,7 @@ def main(*, set_page_config_once: bool = True):
                 st.session_state.q_index += 1
                 st.session_state.showing_result = False
             st.rerun()
+        persist_classic_session()
         render_cross_language_footer("vocab_ja")
         return
 
@@ -1604,6 +1621,7 @@ def main(*, set_page_config_once: bool = True):
             st.session_state.last_correct_answer = option_labels[question['answer_index']]
             st.rerun()
 
+    persist_classic_session()
     render_cross_language_footer("vocab_ja")
 
 

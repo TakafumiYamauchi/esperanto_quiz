@@ -146,6 +146,8 @@ npx playwright install chromium
 
 既存のPC向けStreamlitアプリは残しています。`app.py` 系をデプロイしたURLでも、PC/従来版では上部の「PC版モード」から単語版・例文版・スマホ版へ移動できます。
 
+日本語版・中国語版・韓国語版のPC/従来版では、進行中のクイズ状態をブラウザの `localStorage` に保存し、Streamlitセッション切れ後に「途中から再開」を選べます。保存先は端末内のみで、途中状態はGoogle Sheetsへ送信しません。
+
 ```text
 https://esperanto-quiz.streamlit.app/?quiz=vocab&classic=1
 https://esperanto-quiz.streamlit.app/?quiz=sentence&classic=1

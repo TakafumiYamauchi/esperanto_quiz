@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <style>
+      html,
+      body {
+        background: transparent;
+        height: 0;
+        margin: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const STREAMLIT_API_VERSION = 1;
+      let lastLoadRequestId = "";
+
+      const streamlitHost = {
+        send(type, payload = {}) {
+          if (window.parent === window) {
+            return;
+          }
+          window.parent.postMessage({
+            isStreamlitMessage: true,
+            type,
+            ...payload,
+          }, "*");
+        },
+        ready() {
+          this.send("streamlit:componentReady", { apiVersion: STREAMLIT_API_VERSION });
+        },
+        setFrameHeight(height) {
+          this.send("streamlit:setFrameHeight", { height });
+        },
+        setComponentValue(value) {
+          this.send("streamlit:setComponentValue", { value });
+        },
+      };
+
+      function normalizeError(error) {
+        if (!error) {
+          return "unknown error";
+        }
+        return String(error.message || error.name || error);
+      }
+
+      function loadSession(storageKey, requestId) {
+        if (requestId === lastLoadRequestId) {
+          return;
+        }
+        lastLoadRequestId = requestId;
+        try {
+          const raw = window.localStorage.getItem(storageKey);
+          streamlitHost.setComponentValue({
+            type: "loaded",
+            ok: true,
+            requestId,
+            storageKey,
+            payload: raw ? JSON.parse(raw) : null,
+          });
+        } catch (error) {
+          streamlitHost.setComponentValue({
+            type: "loaded",
+            ok: false,
+            requestId,
+            storageKey,
+            payload: null,
+            error: normalizeError(error),
+          });
+        }
+      }
+
+      function saveSession(storageKey, payload) {
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(payload));
+        } catch (error) {
+          console.warn("Failed to save classic Streamlit session", error);
+        }
+      }
+
+      function clearSession(storageKey) {
+        try {
+          window.localStorage.removeItem(storageKey);
+        } catch (error) {
+          console.warn("Failed to clear classic Streamlit session", error);
+        }
+      }
+
+      window.addEventListener("message", (event) => {
+        const message = event.data;
+        if (!message || message.type !== "streamlit:render") {
+          return;
+        }
+        const command = message.args?.command || {};
+        const action = String(command.action || "");
+        const storageKey = String(command.storageKey || "");
+        const requestId = String(command.requestId || "");
+        if (!storageKey) {
+          return;
+        }
+        if (action === "load" && requestId) {
+          loadSession(storageKey, requestId);
+        } else if (action === "save") {
+          saveSession(storageKey, command.payload || null);
+        } else if (action === "clear") {
+          clearSession(storageKey);
+        }
+        streamlitHost.setFrameHeight(0);
+      });
+
+      streamlitHost.ready();
+      streamlitHost.setFrameHeight(0);
+    </script>
+  </body>
+</html>

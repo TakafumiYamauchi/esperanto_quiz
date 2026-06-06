@@ -31,6 +31,12 @@ from score_sync_service import (
 from score_row_utils import normalize_score_rows
 from mobile_streamlit_bridge import render_mobile_app_entry
 from classic_navigation import get_classic_quiz_mode, render_classic_mode_switch
+from classic_session_persistence import (
+    render_classic_session_loader,
+    render_classic_session_restore_prompt,
+    render_classic_session_writer,
+    request_classic_session_clear,
+)
 import vocab_grouping as vg
 
 # パス設定（単独アプリとして実行）
@@ -1055,6 +1061,12 @@ def main(*, set_page_config_once: bool = True):
         unsafe_allow_html=True,
     )
 
+    render_classic_session_loader("sentence", target_lang="ja")
+    render_classic_session_restore_prompt("sentence", target_lang="ja")
+
+    def persist_classic_session():
+        render_classic_session_writer("sentence", target_lang="ja")
+
     show_intro_block = not (compact_ui and bool(st.session_state.get("questions")))
     if show_intro_block:
         render_classic_mode_switch("sentence", "ja")
@@ -1223,6 +1235,7 @@ def main(*, set_page_config_once: bool = True):
 
         st.markdown("---")
         if st.button("🏠 ホームに戻る", use_container_width=True, type="primary"):
+            request_classic_session_clear("sentence")
             st.session_state.questions = []
             st.session_state.q_index = 0
             st.session_state.correct = 0
@@ -1370,6 +1383,7 @@ def main(*, set_page_config_once: bool = True):
     if questions:
         q0 = questions[0]
         if "prompt_eo" not in q0 or "prompt_ja" not in q0:
+            request_classic_session_clear("sentence")
             st.session_state.questions = []
             st.session_state.q_index = 0
             st.session_state.correct = 0
@@ -1386,6 +1400,7 @@ def main(*, set_page_config_once: bool = True):
             st.session_state.spartan_attempts = 0
             st.session_state.spartan_correct_count = 0
             st.warning("問題データを再生成します。サイドバーで再度『クイズ開始』を押してください。")
+            persist_classic_session()
             return
 
     if not questions:
@@ -1415,6 +1430,7 @@ def main(*, set_page_config_once: bool = True):
             show_rankings(overall_rank_rows, key_suffix="_main", score_rows=overall_rank_scores)
         elif overall_rank_notice:
             st.warning(overall_rank_notice)
+        persist_classic_session()
         render_cross_language_footer("sentence_ja")
         return
 
@@ -1695,6 +1711,7 @@ def main(*, set_page_config_once: bool = True):
             st.session_state.spartan_attempts = 0
             st.session_state.spartan_correct_count = 0
             st.rerun()
+        persist_classic_session()
         render_cross_language_footer("sentence_ja")
         return
 
@@ -1793,6 +1810,7 @@ def main(*, set_page_config_once: bool = True):
                 st.session_state.q_index += 1
                 st.session_state.showing_result = False
             st.rerun()
+        persist_classic_session()
         render_cross_language_footer("sentence_ja")
         return
 
@@ -1875,6 +1893,7 @@ def main(*, set_page_config_once: bool = True):
             st.session_state.showing_result = True
             st.rerun()
 
+    persist_classic_session()
     render_cross_language_footer("sentence_ja")
 
 
