@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from vocab_grouping import _default_audio_key  # noqa: E402
+from data_sources import PHRASE_ID_OFFSET  # noqa: E402
 
 
 VOCAB_CSV = ROOT / "2890 Gravaj Esperantaj Vortoj kun Signifoj en la Japana, Ĉina kaj Korea_260505_plej_nova.csv"
@@ -90,7 +91,7 @@ def read_json_object(path: Path, report: ValidationReport) -> dict[str, Any]:
 
 
 def phrase_audio_key(phrase_id: int, phrase: str) -> str:
-    return f"{phrase_id - 155:04d}_{_default_audio_key(phrase)}"
+    return f"{phrase_id - PHRASE_ID_OFFSET:04d}_{_default_audio_key(phrase)}"
 
 
 def expected_translations(row: dict[str, str], mapping: dict[str, str], fallback: str) -> dict[str, str]:

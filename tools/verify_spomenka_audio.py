@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from vocab_grouping import _default_audio_key  # noqa: E402
+from data_sources import PHRASE_ID_OFFSET  # noqa: E402
 
 PHRASE_CSV = ROOT / "phrases_eo_en_ja_zh_ko_ru_fulfilled_260505.csv"
 VOCAB_CSV = ROOT / "2890 Gravaj Esperantaj Vortoj kun Signifoj en la Japana, Ĉina kaj Korea_260505_plej_nova.csv"
@@ -43,7 +44,7 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 
 
 def phrase_audio_key(phrase_id: int, phrase: str) -> str:
-    return f"{phrase_id - 155:04d}_{_default_audio_key(phrase)}"
+    return f"{phrase_id - PHRASE_ID_OFFSET:04d}_{_default_audio_key(phrase)}"
 
 
 def phrase_items() -> list[AudioItem]:

@@ -263,7 +263,7 @@
 417,6,Advanced 1,General Conversation,Languages,"Jes, sed mi ne parolas ĝin tre bone","Yes, but I don't speak it very well.",はい、でもあまり上手に話せません。,是的，但我说得不是很好。,"네, 하지만 잘 하지는 못해요.","Да, но я говорю на нём не очень хорошо."
 418,7,Advanced 2,General Conversation,Languages,Mi simple bezonas praktiki,I just need to practise.,あとは練習するだけです。,我只是需要多练习。,저는 그냥 연습이 필요해요.,Мне просто нужно попрактиковаться.
 419,7,Advanced 2,General Conversation,Languages,Mi iom perdis la praktikon,I'm a little out of practice.,少し勘が鈍っています。,我有点生疏了。,조금 감이 떨어졌어요.,Мне немного не хватает практики.
-420,7,Advanced 2,General Conversation,Languages,Mi povas komuniki itale,I can get by in Italian.,イタリア語はなんとか話せます。,我会一点意大利语，能应付基本交流。,저는 이탈리아어로 간단한 의사소통은 할 수 있어요.,Я могу изъясняться по-итальянски.
+420,7,Advanced 2,General Conversation,Languages,Mi povas komunikiĝi itale,I can get by in Italian.,イタリア語はなんとか話せます。,我会一点意大利语，能应付基本交流。,저는 이탈리아어로 간단한 의사소통은 할 수 있어요.,Я могу изъясняться по-итальянски.
 421,5,Intermediate 3,General Conversation,Languages,Via tagaloga estas tre bona,Your Tagalog is very good.,タガログ語がお上手ですね。,你的塔加洛语说得很好。,당신의 타갈로그어 실력이 정말 뛰어나네요.,У тебя очень хороший тагальский.
 422,7,Advanced 2,General Conversation,Languages,Mi provas lerni la malajan,I'm trying to learn Malay.,マレー語を勉強しようとしています。,我正在学习马来语。,저는 말레이어를 배우려고 하고 있어요.,Я пытаюсь учить малайский.
 423,8,Advanced 3,General Conversation,Languages,Bonvolu paroli latve,Please speak in Latvian.,ラトビア語で話してください。,请用拉脱维亚语交流。,라트비아어로 말씀해 주세요.,"Пожалуйста, говори на латвийском."
@@ -1699,7 +1699,7 @@
 1853,10,Expert 2,Travel,Giving Directions,Daŭrigu preter la fajrobrigadejo,Continue past the fire station.,消防署を通り過ぎて進んでください。,继续往前走，经过消防站。,소방서를 지나 계속 가세요.,Пройдите мимо пожарной части.
 1854,8,Advanced 3,Travel,Giving Directions,Daŭrigu ankoraŭ ducent metrojn,Keep going for another two hundred metres.,このままあと200メートル進んでください。,继续前行两百米。,앞으로 200미터 더 가세요.,Пройдите ещё двести метров.
 1855,10,Expert 2,Travel,Giving Directions,Daŭrigu ankoraŭ duonkilometron,Keep going for another half a kilometre.,あと500メートルほどそのまま進んでください。,再继续前行五百米。,앞으로 500미터 더 가세요.,Пройдите ещё полкилометра.
-1856,10,Expert 2,Travel,Giving Directions,Daŭrigu rekten preter kelkaj semaforoj,Continue straight on past some traffic lights.,いくつかの信号をそのまま直進してください。,继续直走，经过几个红绿灯。,신호등을 지나 계속 직진하세요.,Продолжайте идти прямо мимо светофоров.
+1856,10,Expert 2,Travel,Giving Directions,Daŭrigu rekte preter kelkaj semaforoj,Continue straight on past some traffic lights.,いくつかの信号をそのまま直進してください。,继续直走，经过几个红绿灯。,신호등을 지나 계속 직진하세요.,Продолжайте идти прямо мимо светофоров.
 1857,9,Expert 1,Travel,Giving Directions,Vi iras laŭ la malĝusta vojo,You're going the wrong way.,そっちじゃありません。,你走错方向了。,잘못된 방향으로 가고 있어요.,Вы идёте неправильной дорогой.
 1858,9,Expert 1,Travel,Giving Directions,Vi prefere veturu per tramo,You'd better take the tram.,路面電車に乗ったほうがいいですよ。,你最好坐电车。,트램을 타는 게 좋겠어요.,Вам лучше поехать на трамвае.
 1859,9,Expert 1,Travel,Giving Directions,Uzu la subpasejon,Use the pedestrian subway.,地下歩道をご利用ください。,请走地下通道。,지하보도를 이용하세요.,Воспользуйтесь подземным переходом.
@@ -3916,7 +3916,7 @@
 4070,10,Expert 2,Leisure Time,Sport,Kie mi povas lui golfbastonojn kaj golfĉaron?,Where can I hire clubs and a buggy?,クラブやカートはどこで借りられますか？,我可以在哪里租高尔夫球杆和球车？,클럽과 카트를 어디에서 대여할 수 있나요?,Где я могу арендовать клюшки и гольф-кар?
 4071,10,Expert 2,Leisure Time,Sport,Kio estas la norma nombro da batoj por ĉi tiu truo?,What is par for this hole?,このホールのパーはいくつですか？,这个洞的标准杆是多少？,이 홀의 파는 몇입니까?,Какой пар у этой лунки?
 4072,10,Expert 2,Leisure Time,Sport,Kiom malproksimen vi batis la pilkon per tiu bato?,How far did you hit the ball with that stroke?,今のショットでどれくらい飛ばしましたか？,你刚才那一杆把球打了多远？,방금 그 샷으로 공을 얼마나 멀리 쳤나요?,Как далеко ты послала мяч тем ударом?
-4073,10,Expert 2,Leisure Time,Sport,Kiom da boatoj partoprenas en ĉi tiu regatto?,How many boats are taking part in this regatta?,このレガッタには何艇のボートが参加していますか？,这次帆船赛共有多少艘船参赛？,이번 레가타에는 몇 척의 보트가 참가하나요?,Сколько лодок участвует в этой регате?
+4073,10,Expert 2,Leisure Time,Sport,Kiom da boatoj partoprenas en ĉi tiu regato?,How many boats are taking part in this regatta?,このレガッタには何艇のボートが参加していますか？,这次帆船赛共有多少艘船参赛？,이번 레가타에는 몇 척의 보트가 참가하나요?,Сколько лодок участвует в этой регате?
 4074,10,Expert 2,Leisure Time,Sport,Ĉi tiu ekzerco trejnos viajn femurajn muskolojn,This exercise will work your thigh muscles.,このエクササイズは太ももの筋肉を鍛えます。,这个练习可以锻炼你的大腿肌肉。,이 운동은 허벅지 근육을 강화하는 데 도움이 됩니다.,Это упражнение проработает твои мышцы бедра.
 4075,2,Beginner 2,Leisure Time,Music,Mi ludas violonon,I play the violin.,私はバイオリンを弾きます。,我拉小提琴。,저는 바이올린을 연주해요.,Я играю на скрипке.
 4076,2,Beginner 2,Leisure Time,Music,Mi estas komencanto,I'm a beginner.,初心者です。,我是初学者。,저는 초보자예요.,Я начинающий.
@@ -4198,7 +4198,7 @@
 4352,8,Advanced 3,Services,At the Estate Agency,Kiom malproksime ĝi estas de la plej proksima stacidomo?,How far is it from the nearest station?,最寄りの駅からどれくらい離れていますか？,离最近的车站有多远？,가장 가까운 역에서 얼마나 떨어져 있나요?,Как далеко она от ближайшей станции?
 4353,9,Expert 1,Services,At the Estate Agency,Ĉu eblas lui garaĝon?,Is it possible to rent a garage?,ガレージを借りることはできますか？,可以租一个车库吗？,차고를 임대할 수 있나요?,Возможно ли арендовать гараж?
 4354,8,Advanced 3,Services,At the Estate Agency,Ĉu estas elementa lernejo proksime?,Is there a primary school nearby?,近くに小学校はありますか？,附近有小学吗？,근처에 초등학교가 있나요?,Есть ли там поблизости начальная школа?
-4355,8,Advanced 3,Services,At the Estate Agency,Ĉu estas iuj butikoj aŭ kafeoj proksime de la domo?,Are there any shops or cafes near the house?,家の近くにお店やカフェはありますか？,房子附近有商店或咖啡馆吗？,집 근처에 가게나 카페가 있나요?,Рядом с домом есть какие-нибудь магазины или кафе?
+4355,8,Advanced 3,Services,At the Estate Agency,Ĉu estas iuj butikoj aŭ kafejoj proksime de la domo?,Are there any shops or cafes near the house?,家の近くにお店やカフェはありますか？,房子附近有商店或咖啡馆吗？,집 근처에 가게나 카페가 있나요?,Рядом с домом есть какие-нибудь магазины или кафе?
 4356,9,Expert 1,Services,At the Estate Agency,Mi ŝatus rigardi ĉi tiun posedaĵon,I'd like to have a look at this property.,この物件を見学したいのですが。,我想看看这处房产。,이 부동산을 한번 보고 싶어요.,Я бы хотел взглянуть на эту недвижимость.
 4357,9,Expert 1,Services,At the Estate Agency,Kiam estus oportune por vi viziti la posedaĵon?,When would you be available to view the property?,物件のご見学はいつご都合がよろしいでしょうか。,您什么时候方便来看房？,언제 부동산을 보실 수 있으신가요?,Когда вам будет удобно посмотреть недвижимость?
 4358,10,Expert 2,Services,At the Estate Agency,La lupago estas pagenda monate anticipe,The rent's payable monthly in advance.,家賃は毎月前払いとなります。,房租需每月提前支付。,임대료는 매달 선불로 지불해야 합니다.,Платить надо ежемесячно за месяц вперёд.

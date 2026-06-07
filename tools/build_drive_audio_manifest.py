@@ -19,7 +19,9 @@ SENTENCE_DATA_PATH = ROOT / "mobile_app" / "data" / "sentences.json"
 
 FOLDERS = {
     "sentence": {
-        "folder_id": "1Mz5wgbIEBV-YMDxIwtklx7A4SFdLD53z",
+        # Repointed 2026-06-07 to a freshly-created public folder after the
+        # previous one (1Mz5wgbIEBV-...) became inaccessible (trashed).
+        "folder_id": "1tmb4_k3zRv2JjOmHCNvv5zIbbneeKwYZ",
         "label": "Esperanto例文5000文_収録音声",
     },
     "vocab": {
@@ -59,7 +61,8 @@ def extract_wav_files(page: str) -> dict[str, str]:
         file_id = match.group("file_id").strip()
         if not filename or not file_id:
             continue
-        audio_key = filename.removesuffix(".wav")
+        # str.removesuffix is 3.9+; repo's default python3 is 3.8, so do it manually.
+        audio_key = filename[:-4] if filename.endswith(".wav") else filename
         files[audio_key] = file_id
     return dict(sorted(files.items()))
 
@@ -84,10 +87,35 @@ def main() -> int:
         "sentence": {},
     }
 
+    existing: dict = {}
+    if OUT_PATH.exists():
+        try:
+            existing = json.loads(OUT_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            existing = {}
+
     for mode, config in FOLDERS.items():
         page = fetch_drive_folder(config["folder_id"])
         files = extract_wav_files(page)
         if not files:
+            # Drive folder inaccessible/empty (trashed or not public): preserve the
+            # previous manifest section rather than aborting the whole rebuild, so an
+            # unrelated broken folder cannot block updating the one that did succeed.
+            prev = existing.get(mode)
+            if isinstance(prev, dict) and prev:
+                print(
+                    f"warning: no wav files in {config['label']}; "
+                    f"preserving {len(prev)} existing '{mode}' entries",
+                    file=sys.stderr,
+                )
+                manifest[mode] = prev
+                manifest["sources"][mode] = {
+                    "folderId": config["folder_id"],
+                    "label": config["label"],
+                    "fileCount": len(prev),
+                    "preservedFromPrevious": True,
+                }
+                continue
             print(f"error: no wav files found in {config['label']}", file=sys.stderr)
             return 1
         manifest[mode] = files

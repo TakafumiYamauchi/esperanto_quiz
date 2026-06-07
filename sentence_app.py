@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 
-from data_sources import PHRASE_CSV
+from data_sources import PHRASE_CSV, PHRASE_ID_OFFSET
 from quiz_scoring import (
     SENTENCE_ACCURACY_BONUS as ACCURACY_BONUS_PER_Q,
     SENTENCE_SCORE_SCALE,
@@ -149,7 +149,7 @@ def safe_float(value, default: float = 0.0) -> float:
 
 
 def _phrase_audio_key(phrase_id: int, phrase: str) -> str:
-    prefix = f"{int(phrase_id) - 155:04d}"
+    prefix = f"{int(phrase_id) - PHRASE_ID_OFFSET:04d}"
     suffix = vg._default_audio_key(phrase)
     return f"{prefix}_{suffix}"
 
@@ -168,7 +168,7 @@ def find_phrase_audio(phrase_id: int, phrase: str):
         if fp.exists():
             return fp.read_bytes(), mime, legacy_key
     # 文章の語順や表記が更新されても、同一 PhraseID の既存音声を拾えるようにする
-    prefix = f"{int(phrase_id) - 155:04d}_"
+    prefix = f"{int(phrase_id) - PHRASE_ID_OFFSET:04d}_"
     for ext, mime in audio_formats:
         matches = sorted(PHRASE_AUDIO_DIR.glob(f"{prefix}*{ext}"))
         if matches:

@@ -1,0 +1,4 @@
+﻿PhraseID,phrase,voice,output_file,matched_audio_file,status
+420,Mi povas komunikiĝi itale,spomenka,0265_mi_povas_komunikigxi_itale.wav,0265_mi_povas_komuniki_itale.wav,generated
+1856,Daŭrigu rekte preter kelkaj semaforoj,spomenka,1701_dauxrigu_rekte_preter_kelkaj_semaforoj.wav,1701_dauxrigu_rekten_preter_kelkaj_semaforoj.wav,generated
+4073,Kiom da boatoj partoprenas en ĉi tiu regato?,spomenka,3918_kiom_da_boatoj_partoprenas_en_cxi_tiu_regato.wav,3918_kiom_da_boatoj_partoprenas_en_cxi_tiu_regatto.wav,generated

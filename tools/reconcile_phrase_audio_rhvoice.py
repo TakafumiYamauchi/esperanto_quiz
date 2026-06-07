@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import vocab_grouping as vg  # noqa: E402
+from data_sources import PHRASE_ID_OFFSET  # noqa: E402
 
 
 AUDIO_FORMATS = (
@@ -114,7 +115,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def phrase_audio_key(phrase_id: int, phrase: str) -> str:
-    return f"{phrase_id - 155:04d}_{vg._default_audio_key(phrase)}"
+    return f"{phrase_id - PHRASE_ID_OFFSET:04d}_{vg._default_audio_key(phrase)}"
 
 
 def load_rows(csv_path: Path) -> list[dict[str, str]]:
@@ -137,7 +138,7 @@ def find_fallback(audio_dir: Path, phrase_id: int, key: str) -> tuple[Path | Non
         if fp.exists():
             return fp, "legacy"
 
-    prefix = f"{phrase_id - 155:04d}_"
+    prefix = f"{phrase_id - PHRASE_ID_OFFSET:04d}_"
     for ext, _mime in AUDIO_FORMATS:
         matches = sorted(audio_dir.glob(f"{prefix}*{ext}"))
         if matches:

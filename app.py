@@ -1390,7 +1390,7 @@ def main(*, set_page_config_once: bool = True):
                 "answer": answer_text,
                 "answer_eo": answer_eo,
                 "phase": ans.get("phase", "main"),
-                "audio_key": options[correct_idx]["audio_key"],
+                "audio_key": options[correct_idx].get("audio_key"),
             }
             if selected == correct_idx:
                 correct_list.append(entry)
@@ -1558,7 +1558,7 @@ def main(*, set_page_config_once: bool = True):
                 if st.button(option_labels[idx], key=button_key, use_container_width=True, type="primary"):
                     clicked_index = idx
                 if show_audio:
-                    opt_audio = question["options"][idx]["audio_key"]
+                    opt_audio = question["options"][idx].get("audio_key")
                     if opt_audio:
                         data, mime = find_audio(opt_audio)
                         if data:

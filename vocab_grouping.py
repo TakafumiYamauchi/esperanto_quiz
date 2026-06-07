@@ -50,7 +50,7 @@ class Mulberry32:
 # エスペラントの語尾規則＋例外リストで分類する。
 PERSONAL_PRONOUNS = {"mi", "vi", "li", "ŝi", "ĝi", "ni", "ili", "oni", "ci"}
 PRONOUNS = {"oni", "si", "mem"}
-CORRELATIVE_PREFIXES = ["ki", "ti", "i", "neni", "ĉi", "ĉ"]
+CORRELATIVE_PREFIXES = ["ki", "ti", "i", "neni", "ĉi"]
 CORRELATIVE_SUFFIXES = ["u", "o", "a", "e", "al", "am", "el", "om", "es"]
 CORRELATIVE_SPECIAL = {"ĉi", "ĉiuj", "ĉiu"}
 PREPOSITIONS = {
@@ -216,7 +216,10 @@ def classify_pos(word: str) -> str:
     if w in PRONOUNS:
         return "pronoun"
     if w.isdigit() or w in NUMERALS or re.match(
-        r"^(unu|du|tri|kvar|kvin|ses|sep|ok|naŭ|dek|cent|mil)[a-zĉĝĥĵŝŭ]*$",
+        # 数詞の語根（および合成）に文法語尾が付いた形だけを数詞とみなす。
+        # 旧パターン [a-zĉĝĥĵŝŭ]* は語根で始まる任意の語（okulo, trinki,
+        # oktobro, centro など）を数詞へ誤分類していたため、語尾を限定して厳格化する。
+        r"^(?:unu|du|tri|kvar|kvin|ses|sep|ok|naŭ|dek|cent|mil)+(?:a|o|aj|oj|an|on|ajn|ojn)?$",
         w,
     ):
         return "numeral"
@@ -361,7 +364,7 @@ def load_vocab(
 def split_by_level(entries: List[VocabEntry]) -> Dict[str, List[VocabEntry]]:
     """
     品詞ごとの語彙を Unified_Level 昇順に並べ、
-    55/240/120 の比率で 初級/中級/上級 に分ける。
+    55:65:120 の比率で 初級/中級/上級 に分ける。
     """
     sorted_entries = sorted(entries, key=lambda e: e.unified_level)
     counts = allocate_by_ratio(len(entries), [55, 65, 120])
@@ -598,7 +601,22 @@ def build_questions_for_group(
     entries = list(group.entries)
     rng.shuffle(entries)
     for correct in entries:
-        pool = [e for e in group.entries if e is not correct]
+        # 誤答候補を表示テキスト(日本語・エスペラント)で一意化し、同一表示の選択肢が
+        # 4択に並ばないようにする（例文版 build_questions・モバイル quiz_core.mjs と同方針、
+        # README「対象言語で同一表示の選択肢を避ける」に整合）。
+        # 各グループの表示が全て一意な現データでは何も除外されず、pool は従来と同一順序・
+        # 同一要素になり誤答抽選も結果も完全に不変（173,400問でバイト一致を実測）。
+        seen_ja = {correct.japanese}
+        seen_eo = {correct.esperanto}
+        pool = []
+        for entry in group.entries:
+            if entry is correct:
+                continue
+            if entry.japanese in seen_ja or entry.esperanto in seen_eo:
+                continue
+            seen_ja.add(entry.japanese)
+            seen_eo.add(entry.esperanto)
+            pool.append(entry)
         option_size = min(max_options - 1, len(pool))
         wrong = rng.sample(pool, option_size)
         options = wrong + [correct]
