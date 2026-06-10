@@ -1,6 +1,7 @@
 # Google Drive 旧重複音声 削除候補一覧
 
 作成日: 2026-06-11
+最終確認: 2026-06-11
 
 対象Driveフォルダ: `Esperanto例文5000文_収録音声`
 
@@ -8,82 +9,21 @@
 
 `tools/build_drive_audio_manifest.py` でGoogle Driveを再読込した結果:
 
-- Drive上の例文WAV: 5056件
+- Drive上の例文WAV: 5000件
 - アプリが参照する必要WAV: 5000件
 - matched: 5000件
 - missing: 0件
-- extra: 56件
+- extra: 0件
 
-したがって、以下56件は現在の `mobile_app/data/sentences.json` から参照されない旧音声。
-Google Drive上から削除してよい候補。
+現在の `mobile_app/data/sentences.json` から参照されない旧音声は残っていない。
+Google Drive上から削除してよい候補は0件。
 
-## 削除候補 56件
+## 削除候補 0件
 
 ```text
-0085_tio_estis_la_plej_malmulto_kion_mi_povis_fari.wav
-0131_mi_timas_ke_mi_ne_povas_resti_plu_longe.wav
-0767_li_logxas_en_unuigxintaj_arabaj_emirlandoj.wav
-0781_kia_estas_via_nacieco.wav
-0835_cxu_vi_edzinigxis.wav
-0837_li_estas_divorcigxinta.wav
-1324_kvarfoje_tri_estas_dek_du.wav
-1373_du_mil_foje_kvin_estas_dek_mil.wav
-1563_cxu_mi_devos_labori_lauxvice.wav
-1571_cxu_mi_povus_ricevi_aligxilon.wav
-1654_kiom_da_tempo_necesas_por_atingi_tien.wav
-1845_kie_mi_suriru.wav
-1918_la_sekva_bonvolu.wav
-1951_vian_doganan_deklaracion_bonvolu.wav
-2017_kriza_elirejo.wav
-2029_en_kazo_de_fajro_uzu_la_sxtuparon.wav
-2087_turnu_dekstren.wav
-2094_kie_mi_turnu.wav
-2095_turnu_dekstren_cxe_la_krucigxo.wav
-2112_turnu_dekstren_cxe_la_t_krucigxo.wav
-2127_turnu_maldekstren_cxe_la_unua_turnigxo.wav
-2129_turnu_dekstren_cxe_la_dua_turnigxo.wav
-2140_vi_lasis_viajn_lumojn_sxaltitajn.wav
-2157_por_25_frankoj_bonvolu.wav
-2222_ne_trinku_kaj_veturu.wav
-2311_mi_ne_kontrauxas_vojagxi_per_trajno_cxiutage.wav
-2328_urgxa_bremso.wav
-2595_la_sxlosilon_de_cxambro_numero_621_bonvolu.wav
-2754_sekvu_min_bonvolu.wav
-2755_infanan_segxeton_bonvolu.wav
-2823_mi_sxatus_koktelon_bonvolu.wav
-2825_mi_prenos_la_samon_bonvolu.wav
-2831_cxu_mi_povus_vidi_la_vinkarton_bonvole.wav
-2875_ankoraux_iomete_bonvolu.wav
-2885_pardonu_ni_sxatus_mendi_bonvolu.wav
-2936_ni_sxatus_mendi_deserton_bonvolu.wav
-2950_cxu_ni_povus_pagi_bonvole.wav
-3047_tri_glasetojn_da_tekilo_bonvolu.wav
-3088_mi_prenos_la_kokidan_supon_bonvolu.wav
-3094_ni_prenos_kokidajn_flugilojn_bonvolu.wav
-3156_mi_prenos_tomatsupon_bonvolu.wav
-3211_hejmfaritan_panon_bonvolu.wav
-3255_kia_grandeco_gxi_estas.wav
-3398_akvorezistan_sxminkon_por_okulharoj_bonvolu.wav
-3427_cxu_estas_io_speciala_kiun_vi_sxatus_vidi.wav
-4229_rekte_malantauxe_bonvolu.wav
-4326_cxu_vi_scias_kie_mi_povas_lasi_ripari_mian_fotoaparaton.wav
-4527_iom_pli_largxe_bonvolu.wav
-4536_mi_sxatus_dentpurigadon_bonvolu.wav
-4607_mi_sxatus_pakajxon_da_aspirino.wav
-4613_mi_sxatus_paroli_kun_la_farmaciisto_bonvolu.wav
-4725_plilauxtigu_bonvolu.wav
-4726_mallauxtigu_bonvolu.wav
-4763_mi_sxatus_vatitan_koverton_bonvolu.wav
-4779_cxu_vi_havas_fotokabinon.wav
-4807_cxe_kiu_gicxeto_estas_posxtrestante.wav
 ```
 
 ## 内訳
 
-- 第6ラウンドで置換された旧音声: 51件
-- 第5ラウンド以前から残っている旧音声: 5件
-  - `2017_kriza_elirejo.wav`
-  - `2029_en_kazo_de_fajro_uzu_la_sxtuparon.wav`
-  - `2328_urgxa_bremso.wav`
-  - `3255_kia_grandeco_gxi_estas.wav`
-  - `4779_cxu_vi_havas_fotokabinon.wav`
+- 手作業削除後に残っている旧音声: 0件
+- Drive fallbackとして必要な5000件はすべて存在するため、アプリ動作上の不足はない。

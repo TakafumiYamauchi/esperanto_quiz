@@ -5,17 +5,52 @@
 
 対象ファイル: `phrases_eo_en_ja_zh_ko_ru_fulfilled_260505.csv`
 
+## 先に読む要約
+
+今回の一連の作業は、`minibaro` のような強引な外来語化、英語・ロシア語からの直訳調、
+文法・語法上かなり不安定な表現を点検し、エスペラント学習教材として明確に直した方がよい箇所だけを直したもの。
+
+| 観点 | 結果 |
+|---|---|
+| エスペラント本文の修正 | 125行 |
+| 訳のみの調整 | 2行 |
+| 音声再生成 | 127件、すべて RHVoice `spomenka` |
+| 維持した方針 | 正しい範囲内の多様性は残す |
+| 代表的に維持した表現 | `regato`, `smuzio`, `toasto`, `Mi feriumas`, `Mi faras praktikon` |
+| Drive状態 | matched 5000 / missing 0 / extra 0 |
+| Driveで削除してよい旧音声 | `drive_audio_extra_files_to_delete_20260611.md` に一覧化 |
+
+特に重要なのは、Claude Code の候補をそのまま採用したのではなく、PIV・既存コーパス・教材方針を見て
+「直すもの」と「多様性として残すもの」を分けた点である。
+
+## 目次
+
+- 概要
+- 判断方針
+- 最終結論
+- 件数
+- ラウンド別まとめ
+- カテゴリ別の見取り図
+- 最終修正一覧
+- 第6ラウンド追加修正一覧
+- 主に維持した候補
+- 第7・第8ラウンド追加裁定
+- 音声・モバイルデータ
+- Google Drive状態
+- 関連文書
+
 ## 概要
 
 `minibaro` 級の強引な外来語化や、英語・ロシア語の連語をそのまま移したような表現を点検し、エスペラント学習教材として明確に直した方がよい箇所だけを修正した。
 
 最終的なCSV差分は **127行**。このうちエスペラント本文の変更は **125行**、訳だけの焦点調整は **2行**（PID 3241 / 3679）である。音声差し替え操作は **127件** だが、これは PID 2271 と PID 3248 を途中でさらに再調整したためで、最終CSV上のエスペラント本文変更行数は125行である。
 
-この文書は、今回の一連の修正について、後から次の4点を確認できるように整理したもの。
+この文書は、今回の一連の修正について、後から次の5点を確認できるように整理したもの。
 
 - 何件直したか
 - どの方針で直したか
 - 具体的にどの文をどう直したか
+- どの候補をあえて直さず残したか
 - 音声・モバイルデータ・Google Drive側に何が残っているか
 
 ## 判断方針
@@ -49,8 +84,8 @@
 | 音声生成操作 | 第1・第2・第3・最終検品・第5・第6ラウンドの合計 | 127 |
 | root例文音声 | `Esperanto例文5000文_収録音声/` のWAV | 5000 |
 | スマホ例文音声 | `mobile_app/sentence-audio/` のWAV | 5000 |
-| Drive fallback | 第6ラウンド新51音声アップロード後 | matched 5000 / missing 0 |
-| Drive上の旧重複 | 第5・第6ラウンド旧音声がDrive側に残存 | extra 56 |
+| Drive fallback | 第6ラウンド新51音声アップロード後 | matched 5000 / missing 0 / extra 0 |
+| Drive上の旧重複 | 手作業削除後、旧音声は残存なし | extra 0 |
 
 ## ラウンド別まとめ
 
@@ -284,28 +319,35 @@ Codex側でPIV2020と実使用例を確認した結果、`ferii` の方が辞書
 - 第8ラウンド: 訳のみ2件、音声再生成なし
 - root音声: 5000 WAV
 - スマホ用音声: 5000 WAV
-- `npm run validate:mobile-assets`: passed（Drive fallback は matched 5000 / missing 0。旧56件 extra は削除候補）
+- `npm run validate:mobile-assets`: passed（Drive fallback は matched 5000 / missing 0 / extra 0）
 - `npm run test:unit`: 69 tests passed
 
 ## Google Drive状態
 
-第6ラウンド新51音声をDriveへアップロード後、`tools/build_drive_audio_manifest.py` でDriveを再読込した現時点では次の状態:
+第6ラウンド新51音声をDriveへアップロードし、旧重複音声を手作業で削除した後、
+`tools/build_drive_audio_manifest.py` でDriveを再読込した現時点では次の状態:
 
-- Drive上の例文WAV: 5056件
+- Drive上の例文WAV: 5000件
 - mobile data と一致する必要音声: 5000件
 - matched: 5000件
 - missing: 0件
-- extra: 56件
-  - 第6ラウンドで置き換えた旧51音声
-  - 第5ラウンド以前からDrive側に残る旧5音声:
-    - `2017_kriza_elirejo`
-    - `2029_en_kazo_de_fajro_uzu_la_sxtuparon`
-    - `2328_urgxa_bremso`
-    - `3255_kia_grandeco_gxi_estas`
-    - `4779_cxu_vi_havas_fotokabinon`
+- extra: 0件
 
 アプリ同梱のローカル音声は root / スマホ用とも5000件で揃っているため通常再生には支障ない。
-Drive fallbackを完全一致に戻すには、旧56音声をDrive上から削除する。
+Drive fallbackも5000件で完全一致している。
+
+## 関連文書
+
+| 文書 | 用途 |
+|---|---|
+| `編集ログ/phrases_eo_forced_loanwords_findings_20260610.md` | Claude Code候補とCodex裁定を含む詳細調査ログ |
+| `編集ログ/drive_audio_extra_files_to_delete_20260611.md` | Google Drive旧重複音声の最終確認結果 |
+| `編集ログ/phrases_audio_replacement_generation_20260610_forced_loanwords.csv` | 第1ラウンド音声生成ログ |
+| `編集ログ/phrases_audio_replacement_generation_20260610_forced_loanwords_round2.csv` | 第2ラウンド音声生成ログ |
+| `編集ログ/phrases_audio_replacement_generation_20260610_forced_loanwords_round3.csv` | 第3ラウンド音声生成ログ |
+| `編集ログ/phrases_audio_replacement_generation_20260610_forced_loanwords_final_audit.csv` | 最終検品ラウンド音声生成ログ |
+| `編集ログ/phrases_audio_replacement_generation_20260610_forced_loanwords_round5.csv` | 第5ラウンド音声生成ログ |
+| `編集ログ/phrases_audio_replacement_generation_20260611_grammar_round6.csv` | 第6ラウンド音声生成ログ |
 
 ## 変更された主なファイル
 

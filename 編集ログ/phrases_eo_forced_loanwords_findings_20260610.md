@@ -1063,3 +1063,74 @@ inkludita(2648)・fragila(2062)・poŝtejo(1803)
 Claude案をCodex側で再裁定した結果、エスペラント本文の追加修正は0件。
 `Mi faras praktikon` は教材上の多様性として維持し、`ankaŭ` の焦点が訳とずれていた2件だけを
 訳側で調整した。音声再生成は不要。
+
+---
+---
+
+# 第9ラウンド（統語規約 census・2026-06-11）
+
+機械検査可能な統語規約5種の全数走査: 意志の ke節 -u 一致／従属節の時制保持／従属接続詞の形
+（antaŭ ol・post kiam 等）／従属節前のコンマ規約／ĉi- 複合語のハイフン。
+
+## 結果: 4規約は完全クリーン・コンマ規約のみ3件
+
+- **意志動詞 + ke + 直説法（-u であるべき所）: 0件** — voli/peti/rekomendi 系の ke節は全て正しく -u
+- **従属節の英語式時制落ち（kiam/se節の現在形+主節未来形）: 0件**
+- **誤形接続詞（*antaŭ ke / *post ke / *ĝis ke）: 0件**
+- **ĉi+副詞のハイフン欠落: 0件**（ĉi-vespere 等すべて正格）
+- **コンマ規約**: 候補45件中42件は前置詞+疑問詞の直接疑問文（コンマ不要・正格）。
+  真の欠落は3件のみ:
+
+### 【cosmetic】従属 kiam 節のコンマ欠落（コーパス規範は 12:3 でコンマあり）
+| PID | 現在 | 修正 |
+|---|---|---|
+| 2061 | Mi ne ricevis la bagaĝetikedon kiam mi registriĝis | ...bagaĝetikedon**,** kiam... |
+| 4544 | Ĉu doloras kiam vi glutas? | Ĉu doloras**,** kiam vi glutas? |
+| 4678 | Doloras kiam mi maĉas | Doloras**,** kiam mi maĉas |
+
+**重要: この3件は音声再収録不要**。audioKey のスラグ正規化は句読点を除去するため
+（実測: 'Doloras kiam mi maĉas' と 'Doloras, kiam mi maĉas' は同一スラグ）、
+CSV修正 + build_mobile_data.py 再実行のみで完結する、本監査で唯一のゼロコスト修正候補。
+
+## 全9ラウンド最終総括
+語彙(×2)・連語・語義・固有名詞・文法(8観点)・定型句・疑問詞・造語法・-um・軽動詞・焦点詞・
+比較構文・統語規約(5種) — **検査可能な全レイヤーの走査が完了**。第9Rの収量はコンマ3件のみで、
+収量曲線は完全にゼロへ漸近した。本書（dossier）をもって発掘活動を最終終了とする。
+残作業: Codex 裁定（1588 praktiko→staĝo・3241/3679 訳調整・コンマ3件）と、
+多様性保護22項目の「再フラグ禁止」運用のみ。
+
+---
+---
+
+# 第10ラウンド（適用後の実現形監査・2026-06-11）
+
+Codex が第5〜第8ラウンドの修正を4コミット（39fbd76 / 6c83b47 / 355cd9e / 01e5a11）で適用・
+push 完了したため、**実際にコーパスへ入った「実現形」62文＋訳調整3行**を事後監査した。
+
+## 結果: 実現形は全て健全 — 新たな不自然表現の混入ゼロ
+
+- 62文の実現形は、dossier の提案どおり（bonvolu→mi petas 全26文・turniĝu×6・Savelirejo・
+  Okaze de fajro・kaporojn・Kiun grandecon・kion/kiun 対・eksedziĝinta・ŝaltitaj・
+  Ne stiru ebria・riparigi・paketon 等）か、**Codex 独自の洗練形**。
+- Codex 洗練形の個別検証（spot check 済み・全て正格）:
+  - 1528 **"Dumiloble kvin"** — PIV の dekoble・miloble（Z用例 "multigu vin miloble"）と
+    同型の正規融合形。2000×5 の語順も原文保持で適切
+  - 1718 **"labori laŭ deĵoroj"** — PIV deĵoro（勤務時間帯）による私案 skipo より適切な選択
+  - 2466 **"Ne ĝenas min vojaĝi..."** — 私案より自然
+  - 4708 **"Li bezonas fortajn okulvitrojn"** — dioptrioj 単位誤用を文ごと再構成（EN "His
+    prescription is strong" とは微差あるが眼鏡店文脈で等価・許容）
+  - 4934 **fotobudon** — 提案どおり（訳列も フォトブース に同期）
+- 訳調整3行は完全に整合: 1301 EN Wayne、3241 は **EN/JA/ZH/KO 全てを「あなたも」焦点に統一**
+  （EO維持の最小介入案を採用）、3679 JA「小麦粉も」。
+- **Drive 同期完了**: manifest sentence keys = 5000/5000（45キー欠落解消・チェックリスト消化）。
+  資産検証パス・テスト69件green・origin/main と完全同期。
+
+## 残オープン項目（Codex 裁定待ち・3グループのみ）
+1. PID 1588 "Mi faras praktikon" → staĝon（R8 defect・音声1本）
+2. PID 2074 "Mi feriumas" → ferias（R7 graylist・音声1本）
+3. コンマ3件 2061/4544/4678（R9・**音声再収録不要のゼロコスト修正**）
+
+## 全10ラウンド・最終クローズ
+発掘9ラウンド＋適用後監査1ラウンドをもって、本監査プロジェクトの全工程を終了する。
+コーパスは「外来語・カルク・語義・文法・定型句・統語規約」の全層で監査済みとなり、
+多様性保護22項目の境界も確定した。以後の品質管理は通常運用に移行する。
