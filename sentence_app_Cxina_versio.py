@@ -378,7 +378,7 @@ def _sentence_ranking_status_notice(status):
         return None, None
     source = status.get("source")
     if source == "cache":
-        return "info", "例句排行榜当前暂时显示上次取得的数据。"
+        return "info", "例句排行榜暂时显示上次获取的数据。"
     if source == "unavailable":
         return "warning", "无法读取例句排行榜，因此暂不显示。请稍后重新加载。"
     return None, None
@@ -550,7 +550,7 @@ def _resolve_sentence_overall_points(
         log_total_vocab = max(0.0, log_total_all - sentence_total)
         notice = None
         if all_scores_status.get("source") == "cache":
-            notice = "总累计正在暂时显示上次获取的数据。请稍后重新加载。"
+            notice = "总累计暂时显示上次获取的数据。请稍后重新加载。"
         elif ranked_total is not None and abs(ranked_total - overall_points) > 0.5:
             notice = "总累计的辅助汇总表与 Scores 存在差异。请稍后重新加载。"
         return overall_points, sentence_total, log_total_vocab, True, notice
@@ -558,10 +558,10 @@ def _resolve_sentence_overall_points(
     if ranked_total is not None:
         overall_points = max(sentence_total, ranked_total)
         log_total_vocab = max(0.0, overall_points - sentence_total)
-        notice = "总累计正在暂时显示辅助汇总表的值。请稍后重新加载。"
+        notice = "总累计暂时显示辅助汇总表的值。请稍后重新加载。"
         return overall_points, sentence_total, log_total_vocab, True, notice
 
-    notice = "暂时无法取得总累计，因此目前只显示例句累计。"
+    notice = "暂时无法获取总累计，因此目前只显示例句累计。"
     return None, sentence_total, 0.0, False, notice
 
 
@@ -579,14 +579,14 @@ def _resolve_overall_ranking_table(
         if main_rank:
             notice = None
             if all_scores_status.get("source") == "cache":
-                notice = "总排行榜正在暂时显示上次获取的 Scores。请稍后重新加载。"
+                notice = "总排行榜暂时显示上次获取的 Scores。请稍后重新加载。"
             elif main_rank_status.get("source") == "cache":
-                notice = "总排行榜的累计正在暂时显示上次获取的辅助汇总表。请稍后重新加载。"
+                notice = "总排行榜的累计暂时显示上次获取的辅助汇总表。请稍后重新加载。"
             return main_rank, all_scores, notice
         if all_scores:
             notice = None
             if all_scores_status.get("source") == "cache":
-                notice = "总排行榜正在暂时显示上次获取的 Scores。请稍后重新加载。"
+                notice = "总排行榜暂时显示上次获取的 Scores。请稍后重新加载。"
             else:
                 notice = "总排行榜正在直接根据 Scores 进行汇总。"
             return all_scores, all_scores, notice
@@ -598,7 +598,7 @@ def _resolve_overall_ranking_table(
             notice = "总排行榜正在暂时显示上次获取的辅助汇总表累计。今日/本月页签可能会为空。"
         return main_rank, [], notice
 
-    return None, None, "暂时无法取得总排行榜。请稍后重新加载。"
+    return None, None, "暂时无法获取总排行榜。请稍后重新加载。"
 
 
 def summarize_scores(scores):
@@ -682,8 +682,8 @@ def render_cross_language_footer(current_key: str):
     links = [
         ("vocab_zh", "词汇版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_zh", "例句版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=sentence&classic=1"),
-        ("vocab_ko", "어휘 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
-        ("sentence_ko", "문장 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
+        ("vocab_ko", "단어 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
+        ("sentence_ko", "예문 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
         ("vocab_ja", "語彙版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_ja", "文章版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=sentence&classic=1"),
     ]
@@ -1068,7 +1068,7 @@ def main(*, set_page_config_once: bool = True):
     show_intro_block = not (compact_ui and bool(st.session_state.get("questions")))
     if show_intro_block:
         render_classic_mode_switch("sentence", "zh")
-        st.write("从按主题分类的例句中出题四选一。得分系数比单词版高约2.0倍。")
+        st.write("从按主题分类的例句中以四选一形式出题。得分系数约为单词版的2.0倍。")
         with st.expander("得分计算规则"):
             st.markdown(
                 "\n".join(
@@ -1077,7 +1077,7 @@ def main(*, set_page_config_once: bool = True):
                         f"- 连续答对加成：第2题起每次连对 +{STREAK_BONUS * STREAK_BONUS_SCALE:.1f}",
                         f"- 准确率加成：最终正确率 × 题数 × {ACCURACY_BONUS_PER_Q:.1f}",
                         f"- 斯巴达模式：复习题按{SPARTAN_SCORE_MULTIPLIER:.1f}倍计算（无准确率加成）",
-                        "- 同题量下，预计得分比单词版高约2.0倍。",
+                        "- 同题量下，预计得分约为单词版的2.0倍。",
                     ]
                 )
             )
@@ -1195,7 +1195,7 @@ def main(*, set_page_config_once: bool = True):
                     help="增加可用纵向空间；如需恢复默认可关闭此项。",
                 )
             st.caption(f"设备判定: 移动端 / 传统版压缩: {'ON' if compact_ui else 'OFF'}")
-        st.caption("无论出题方向，只要开启开关就会显示选项音频。移动端卡顿时建议关闭。")
+        st.caption("无论出题方向如何，只要开启开关就会显示选项音频。移动端卡顿时建议关闭。")
 
         if st.button("开始测验", use_container_width=True):
             rng = random.Random()
@@ -1373,7 +1373,7 @@ def main(*, set_page_config_once: bool = True):
             if overall_available:
                 st.info(f"当前累计（总计）: {overall_points:.1f}")
             else:
-                st.info("当前累计（总计）: 暂时无法取得")
+                st.info("当前累计（总计）: 暂时无法获取")
             if overall_notice:
                 st.warning(overall_notice)
 
@@ -1488,7 +1488,7 @@ def main(*, set_page_config_once: bool = True):
             elif st.session_state.score_saved and saved_projection_raw is not None:
                 projected_total = safe_float(saved_projection_raw, user_total_sentence + points)
                 st.metric("累计（本次加分后·总计）", f"{projected_total:.1f}")
-                overall_notice = "由于未能重新取得总累计，当前显示的是保存时点的数值。"
+                overall_notice = "由于未能重新获取总累计，当前显示的是保存时的数值。"
             else:
                 st.metric("累计（本次加分后·例句）", f"{user_total_sentence + points:.1f}")
             if overall_notice:
@@ -1496,11 +1496,11 @@ def main(*, set_page_config_once: bool = True):
         st.caption("可以通过音频复习。")
         st.write(f"正确 {st.session_state.correct}/{total}")
         st.write(
-            f"明细：本篇 基础+连击 {raw_main:.1f} / 斯巴达 {raw_spartan_scaled:.1f}"
+            f"明细：正式部分 基础+连击 {raw_main:.1f} / 斯巴达 {raw_spartan_scaled:.1f}"
             f"（无准确率加成，含{SPARTAN_SCORE_MULTIPLIER:.1f}倍） / 准确率加成 {acc_bonus:.1f}"
         )
         if st.session_state.spartan_mode and sp_attempts:
-            st.caption(f"斯巴达模式：复习部分按通常的{SPARTAN_SCORE_MULTIPLIER*100:.0f}%计分（无准确率加成）")
+            st.caption(f"斯巴达模式：复习部分按正常得分的{SPARTAN_SCORE_MULTIPLIER*100:.0f}%计分（无准确率加成）")
             st.caption(f"斯巴达正确率：{sp_accuracy*100:.1f}% ({sp_correct}/{sp_attempts})")
         if normalized_sentence_user_name:
             st.caption("若已有同名用户的分数，将累加。")

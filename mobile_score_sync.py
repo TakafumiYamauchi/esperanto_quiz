@@ -28,6 +28,57 @@ def _safe_int(value, default=0):
         return default
 
 
+# ユーザー可視メッセージの3言語表（PWAは payload.targetLang を送ってくる。
+# 旧クライアント・不正値は ja にフォールバック）。モジュール内で完結させ、
+# 新たなクロスモジュール import を増やさない（Streamlit Cloud の
+# stale-module-cache 由来 ImportError を避ける設計）。
+_MESSAGES = {
+    "bad_request": {
+        "ja": "保存要求の形式が不正です。",
+        "zh": "保存请求的格式不正确。",
+        "ko": "저장 요청 형식이 올바르지 않습니다.",
+    },
+    "need_user": {
+        "ja": "保存するにはユーザー名が必要です。",
+        "zh": "保存分数需要先输入用户名。",
+        "ko": "저장하려면 사용자명이 필요합니다.",
+    },
+    "no_result": {
+        "ja": "保存できるクイズ結果がありません。",
+        "zh": "没有可保存的测验结果。",
+        "ko": "저장할 수 있는 퀴즈 결과가 없습니다.",
+    },
+    "sheets_failed": {
+        "ja": "Google Sheetsへの保存に失敗しました。Secrets設定とSheets共有権限を確認してください。",
+        "zh": "保存到 Google Sheets 失败。请检查 Secrets 配置和表格的共享权限。",
+        "ko": "Google Sheets 저장에 실패했습니다. Secrets 설정과 시트 공유 권한을 확인해 주세요.",
+    },
+    "totals_failed": {
+        "ja": "スコアログは保存済みです。累積得点の更新だけ失敗したため、もう一度押すと同じ保存IDで安全に再更新します。",
+        "zh": "分数日志已保存，但累计得分更新失败。再按一次会使用相同的保存ID安全地重新更新。",
+        "ko": "점수 로그는 저장되었습니다. 누적 점수 업데이트만 실패했으므로 다시 누르면 같은 저장 ID로 안전하게 다시 업데이트됩니다.",
+    },
+    "saved": {
+        "ja": "ランキングに保存しました。今回の{points:.1f}点を累積得点に加算済みです。",
+        "zh": "已保存到排行榜。本次 {points:.1f} 分已计入累计得分。",
+        "ko": "랭킹에 저장했습니다. 이번 {points:.1f}점은 누적 점수에 반영되었습니다.",
+    },
+}
+
+
+def _payload_lang(payload):
+    if not isinstance(payload, dict):
+        return "ja"
+    lang = str(payload.get("targetLang") or "ja").strip().lower()[:2]
+    return lang if lang in ("ja", "zh", "ko") else "ja"
+
+
+def _msg(payload, key, **fmt):
+    table = _MESSAGES[key]
+    text = table.get(_payload_lang(payload), table["ja"])
+    return text.format(**fmt) if fmt else text
+
+
 def _score_result(payload, *, ok, message, warning=None, recoverable=""):
     return {
         "type": "score_save_result",
@@ -115,21 +166,21 @@ def _update_totals(record):
 
 def save_mobile_score_request(payload):
     if not isinstance(payload, dict) or payload.get("type") != "save_score":
-        return _score_result({}, ok=False, message="保存要求の形式が不正です。")
+        return _score_result({}, ok=False, message=_msg(payload, "bad_request"))
 
     user = str(payload.get("user") or "").strip()
     if not user:
-        return _score_result(payload, ok=False, message="保存するにはユーザー名が必要です。")
+        return _score_result(payload, ok=False, message=_msg(payload, "need_user"))
 
     record = _build_record(payload)
     if record["total"] <= 0:
-        return _score_result(payload, ok=False, message="保存できるクイズ結果がありません。")
+        return _score_result(payload, ok=False, message=_msg(payload, "no_result"))
 
     if not _append_score(record):
         return _score_result(
             payload,
             ok=False,
-            message="Google Sheetsへの保存に失敗しました。Secrets設定とSheets共有権限を確認してください。",
+            message=_msg(payload, "sheets_failed"),
         )
 
     overall_ok, sentence_ok = _update_totals(record)
@@ -137,7 +188,7 @@ def save_mobile_score_request(payload):
         return _score_result(
             payload,
             ok=False,
-            message="スコアログは保存済みです。累積得点の更新だけ失敗したため、もう一度押すと同じ保存IDで安全に再更新します。",
+            message=_msg(payload, "totals_failed"),
             recoverable="totals_update",
         )
 
@@ -145,5 +196,5 @@ def save_mobile_score_request(payload):
     return _score_result(
         payload,
         ok=True,
-        message=f"ランキングに保存しました。今回の{points:.1f}点を累積得点に加算済みです。",
+        message=_msg(payload, "saved", points=points),
     )

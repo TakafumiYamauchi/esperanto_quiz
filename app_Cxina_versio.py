@@ -72,7 +72,7 @@ POS_JP = {
     "conjunction": "连词",
     "prefix": "前缀",
     "suffix": "后缀",
-    "correlative": "对应词",
+    "correlative": "相关词",
     "numeral": "数词",
     "bare_adverb": "原形副词",
     "pronoun": "代词",
@@ -432,8 +432,8 @@ def render_cross_language_footer(current_key: str):
     links = [
         ("vocab_zh", "词汇版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_zh", "例句版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=sentence&classic=1"),
-        ("vocab_ko", "어휘 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
-        ("sentence_ko", "문장 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
+        ("vocab_ko", "단어 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
+        ("sentence_ko", "예문 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
         ("vocab_ja", "語彙版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_ja", "文章版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=sentence&classic=1"),
     ]
@@ -963,7 +963,7 @@ def main(*, set_page_config_once: bool = True):
                         f"- 连续答对加成：第2题起每次连对 +{STREAK_BONUS}",
                         f"- 准确率加成：最终正确率 × 题数 × {ACCURACY_BONUS_PER_Q}",
                         f"- 斯巴达准确率加成：无（复习部分仅基础+难度按{SPARTAN_SCORE_MULTIPLIER:.1f}倍计算）",
-                        "- 做完该组后在结果画面显示包含加成的总分。",
+                        "- 做完该组后在结果页面显示包含加成的总分。",
                     ]
                 )
             )
@@ -993,7 +993,7 @@ def main(*, set_page_config_once: bool = True):
         choice = st.selectbox("选择分组", group_labels)
         selected_group = group_options[group_labels.index(choice)] if group_options else None
         st.checkbox(
-            f"斯巴达模式（全部题目后，将错题随机出到答对为止，得分{SPARTAN_SCORE_MULTIPLIER:.1f}倍）",
+            f"斯巴达模式（做完全部题目后，将错题随机出到答对为止，得分{SPARTAN_SCORE_MULTIPLIER:.1f}倍）",
             key="spartan_mode",
             disabled=bool(st.session_state.questions),
         )
@@ -1243,11 +1243,11 @@ def main(*, set_page_config_once: bool = True):
         st.metric("正确率", f"{accuracy*100:.1f}%")
         st.metric("得分", f"{points:.1f}")
         if st.session_state.spartan_mode and sp_attempts:
-            st.caption(f"斯巴达模式：复习部分按通常的{SPARTAN_SCORE_MULTIPLIER*100:.0f}%计分（无准确率加成）")
+            st.caption(f"斯巴达模式：复习部分按正常得分的{SPARTAN_SCORE_MULTIPLIER*100:.0f}%计分（无准确率加成）")
             st.caption(f"斯巴达正确率：{sp_accuracy*100:.1f}% ({sp_correct}/{sp_attempts})")
         st.write(f"正确 {correct} / {total}")
         st.write(
-            f"明细：本篇 基础+难度 {raw_points_main:.1f} / 准确率加成 {accuracy_bonus:.1f}"
+            f"明细：正式部分 基础+难度 {raw_points_main:.1f} / 准确率加成 {accuracy_bonus:.1f}"
             f" / 斯巴达 基础+难度 {raw_points_spartan:.1f}（无准确率加成）"
             f" → 计入 {spartan_scaled:.1f}（{SPARTAN_SCORE_MULTIPLIER*100:.0f}%）"
         )
@@ -1305,7 +1305,7 @@ def main(*, set_page_config_once: bool = True):
                         else:
                             st.session_state.score_saved = False
                             st.session_state.score_sync_warning = (
-                                "分数日志已保存。只有累计分数同步失败，"
+                                "分数日志已保存，但累计分数同步失败，"
                                 "再次点击会使用同一保存ID安全地重新更新。"
                             )
                         st.rerun()

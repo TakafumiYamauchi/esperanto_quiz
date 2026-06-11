@@ -682,8 +682,8 @@ def render_cross_language_footer(current_key: str):
     links = [
         ("vocab_zh", "語彙版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_zh", "文章版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=sentence&classic=1"),
-        ("vocab_ko", "어휘 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
-        ("sentence_ko", "문장 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
+        ("vocab_ko", "단어 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
+        ("sentence_ko", "예문 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
         ("vocab_ja", "語彙版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_ja", "文章版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=sentence&classic=1"),
     ]

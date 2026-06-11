@@ -432,8 +432,8 @@ def render_cross_language_footer(current_key: str):
     links = [
         ("vocab_zh", "词汇版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_zh", "例句版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=sentence&classic=1"),
-        ("vocab_ko", "어휘 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
-        ("sentence_ko", "문장 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
+        ("vocab_ko", "단어 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
+        ("sentence_ko", "예문 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
         ("vocab_ja", "語彙版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_ja", "文章版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=sentence&classic=1"),
     ]
@@ -471,7 +471,7 @@ def format_group_label(group):
     stage_label = format_stage_label(group.stages)
     gid = group.id.split(":")[-1]  # g1
     gid_num = gid[1:] if gid.startswith("g") else gid
-    return f"{POS_JP.get(group.pos, group.pos)} / {stage_label} / 그룹{gid_num} ({group.size}어)"
+    return f"{POS_JP.get(group.pos, group.pos)} / {stage_label} / 그룹{gid_num} ({group.size}단어)"
 
 
 @st.cache_data(show_spinner=False, max_entries=AUDIO_CACHE_MAX_ENTRIES)
@@ -495,7 +495,7 @@ def simple_audio_player(akey: str, question_index: int = 0, instance: str = "def
     """
     data, mime = find_audio(akey)
     if not data:
-        st.info("오디오 파일 없음")
+        st.info("음성 파일 없음")
         return
 
     format_map = {
@@ -960,8 +960,8 @@ def main(*, set_page_config_once: bool = True):
                         f"(초급{VOCAB_STAGE_FACTORS['beginner']:.1f} / "
                         f"중급{VOCAB_STAGE_FACTORS['intermediate']:.1f} / "
                         f"상급{VOCAB_STAGE_FACTORS['advanced']:.1f})",
-                        f"- 연속 정답 보너스: 2문제째부터 연속 정답 1회당 +{STREAK_BONUS}",
-                        f"- 정확도 보너스: 최종 정답률 × 문제수 × {ACCURACY_BONUS_PER_Q}",
+                        f"- 연속 정답 보너스: 2번째 문제부터 연속 정답 1회당 +{STREAK_BONUS}",
+                        f"- 정확도 보너스: 최종 정답률 × 문제 수 × {ACCURACY_BONUS_PER_Q}",
                         f"- 스파르타 정확도 보너스: 없음(복습분은 기본+난이도만 {SPARTAN_SCORE_MULTIPLIER:.1f}배로 합산)",
                         "- 그룹을 모두 풀면 결과 화면에 보너스 포함 합계를 표시합니다.",
                     ]
@@ -993,7 +993,7 @@ def main(*, set_page_config_once: bool = True):
         choice = st.selectbox("그룹을 선택", group_labels)
         selected_group = group_options[group_labels.index(choice)] if group_options else None
         st.checkbox(
-            f"스파르타 모드(모든 문제 후 틀린 것만 정답할 때까지 무작위 출제 · 점수 {SPARTAN_SCORE_MULTIPLIER:.1f}배)",
+            f"스파르타 모드(모든 문제를 푼 뒤 틀린 문제만 맞힐 때까지 무작위 출제 · 점수 {SPARTAN_SCORE_MULTIPLIER:.1f}배)",
             key="spartan_mode",
             disabled=bool(st.session_state.questions),
         )
@@ -1023,7 +1023,7 @@ def main(*, set_page_config_once: bool = True):
                     help="문항 음성은 유지하고, 선택지별 음성만 숨겨 세로 스크롤을 줄입니다.",
                 )
                 st.checkbox(
-                    "모바일 최적화 시 문제문 음성 플레이어 숨기기",
+                    "모바일 최적화 시 문항 음성 플레이어 숨기기",
                     key="compact_hide_prompt_audio",
                     help="문항+4지선다를 한 화면에 담기 쉽게 합니다. 필요할 때만 OFF로 바꿔 표시하세요.",
                 )
@@ -1404,7 +1404,7 @@ def main(*, set_page_config_once: bool = True):
                     if data:
                         st.audio(data, format=mime, start_time=0)
         if correct_list:
-            st.markdown("### 정답한 문제(확인용)")
+            st.markdown("### 맞힌 문제(확인용)")
             st.caption("음성으로 확인만 가능합니다.")
             for c in correct_list:
                 st.write(f"- {c['prompt']}: {c['answer']} / {c['answer_eo']} ({c['phase']})")
@@ -1462,15 +1462,15 @@ def main(*, set_page_config_once: bool = True):
             hide_prompt_audio = compact_question_ui and st.session_state.get("compact_hide_prompt_audio", True)
             if not hide_prompt_audio:
                 if not compact_question_ui:
-                    st.caption(f"🔊 발음 듣기(문제문·자동 재생)[{audio_key}]")
+                    st.caption(f"🔊 발음 듣기(문항·자동 재생)[{audio_key}]")
                 simple_audio_player(audio_key, question_index=q_index, instance="prompt")
             else:
-                st.markdown("<div class='question-audio-hint'>🔇 문제문 음성은 모바일 최적화에서 숨김</div>", unsafe_allow_html=True)
+                st.markdown("<div class='question-audio-hint'>🔇 문항 음성은 모바일 최적화에서 숨김</div>", unsafe_allow_html=True)
 
     if in_spartan:
         if not compact_question_ui:
             st.subheader(f"스파르타 복습 남은 {len(st.session_state.spartan_pending)}문제 / 총 {len(questions)}문제")
-            st.caption("틀린 문제만 무작위로 출제합니다. 정답하면 목록에서 사라집니다.")
+            st.caption("틀린 문제만 무작위로 출제합니다. 맞히면 목록에서 사라집니다.")
         title_prefix = "복습"
     else:
         title_prefix = f"Q{q_index+1}/{len(questions)}"

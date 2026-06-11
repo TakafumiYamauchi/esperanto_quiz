@@ -579,16 +579,16 @@ def _resolve_overall_ranking_table(
         if main_rank:
             notice = None
             if all_scores_status.get("source") == "cache":
-                notice = "전체 랭킹은 이전에 가져온 Scores 를 임시로 표시하고 있습니다. 잠시 후 다시 불러와 주세요."
+                notice = "전체 랭킹은 이전에 가져온 Scores를 임시로 표시하고 있습니다. 잠시 후 다시 불러와 주세요."
             elif main_rank_status.get("source") == "cache":
                 notice = "전체 랭킹의 누적은 이전에 가져온 보조 집계 시트를 임시로 표시하고 있습니다. 잠시 후 다시 불러와 주세요."
             return main_rank, all_scores, notice
         if all_scores:
             notice = None
             if all_scores_status.get("source") == "cache":
-                notice = "전체 랭킹은 이전에 가져온 Scores 를 임시로 표시하고 있습니다. 잠시 후 다시 불러와 주세요."
+                notice = "전체 랭킹은 이전에 가져온 Scores를 임시로 표시하고 있습니다. 잠시 후 다시 불러와 주세요."
             else:
-                notice = "전체 랭킹은 Scores 를 직접 집계해 표시하고 있습니다."
+                notice = "전체 랭킹은 Scores를 직접 집계해 표시하고 있습니다."
             return all_scores, all_scores, notice
         return None, None, None
 
@@ -682,8 +682,8 @@ def render_cross_language_footer(current_key: str):
     links = [
         ("vocab_zh", "词汇版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_zh", "例句版（中文）", "https://esperanto-quiz-zh.streamlit.app/?quiz=sentence&classic=1"),
-        ("vocab_ko", "어휘 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
-        ("sentence_ko", "문장 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
+        ("vocab_ko", "단어 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=vocab&classic=1"),
+        ("sentence_ko", "예문 버전(한국어)", "https://esperanto-quiz-ko.streamlit.app/?quiz=sentence&classic=1"),
         ("vocab_ja", "語彙版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=vocab&classic=1"),
         ("sentence_ja", "文章版（日本語）", "https://esperanto-quiz.streamlit.app/?quiz=sentence&classic=1"),
     ]
@@ -1074,10 +1074,10 @@ def main(*, set_page_config_once: bool = True):
                 "\n".join(
                     [
                         f"- 기본점: (레벨 + 11.5) × {SENTENCE_SCORE_SCALE:.4g}(예: Lv5→{base_points_for_level(5):.1f}점)",
-                        f"- 연속 정답 보너스: 2문제째부터 연속 정답 1회당 +{STREAK_BONUS * STREAK_BONUS_SCALE:.1f}",
-                        f"- 정확도 보너스: 최종 정답률 × 문제수 × {ACCURACY_BONUS_PER_Q:.1f}",
+                        f"- 연속 정답 보너스: 2번째 문제부터 연속 정답 1회당 +{STREAK_BONUS * STREAK_BONUS_SCALE:.1f}",
+                        f"- 정확도 보너스: 최종 정답률 × 문제 수 × {ACCURACY_BONUS_PER_Q:.1f}",
                         f"- 스파르타 모드: 복습 분량은 {SPARTAN_SCORE_MULTIPLIER:.1f}배로 합산(정확도 보너스 없음)",
-                        "- 같은 문제수라면 단어 버전보다 약 2.0배 점수가 오르는 설정입니다.",
+                        "- 같은 문제 수라면 단어 버전보다 약 2.0배 점수가 오르는 설정입니다.",
                     ]
                 )
             )
@@ -1157,7 +1157,7 @@ def main(*, set_page_config_once: bool = True):
         )[0]
         st.session_state.direction = direction
         st.checkbox(
-            f"스파르타 모드(모든 문제 후 틀린 것만 정답할 때까지 무작위 출제 · 점수 {SPARTAN_SCORE_MULTIPLIER:.1f}배)",
+            f"스파르타 모드(모든 문제를 푼 뒤 틀린 문제만 맞힐 때까지 무작위 출제 · 점수 {SPARTAN_SCORE_MULTIPLIER:.1f}배)",
             key="spartan_mode",
             disabled=bool(st.session_state.questions),
         )
@@ -1180,7 +1180,7 @@ def main(*, set_page_config_once: bool = True):
                     help="문항 음성은 유지하고, 선택지별 음성만 숨겨 세로 스크롤을 줄입니다.",
                 )
                 st.checkbox(
-                    "모바일 최적화 시 문제문 음성 플레이어 숨기기",
+                    "모바일 최적화 시 문항 음성 플레이어 숨기기",
                     key="compact_hide_prompt_audio",
                     help="문항+4지선다를 한 화면에 담기 쉽게 합니다. 필요할 때만 OFF로 바꿔 표시하세요.",
                 )
@@ -1202,7 +1202,7 @@ def main(*, set_page_config_once: bool = True):
             entries = groups.get((topic, subtopic), [])
             qs = build_questions(entries, selected_levels, rng, direction)
             if len(qs) < 4:
-                st.warning("4문제 이상이 되도록 레벨을 늘려주세요.")
+                st.warning("4문제 이상이 되도록 레벨을 더 선택해 주세요.")
             else:
                 st.session_state.questions = qs
                 st.session_state.q_index = 0
@@ -1682,7 +1682,7 @@ def main(*, set_page_config_once: bool = True):
                 st.write(f"　정답 [{w['answer_ja']} / {w['answer']}], 내 답변 [{w['selected_ja']} / {w['selected']}]")
                 play_phrase_audio(w["phrase_id"], w["answer"], autoplay=False, caption="🔊 발음 확인")
         if correct_list:
-            st.markdown("### 정답한 문제(확인용)")
+            st.markdown("### 맞힌 문제(확인용)")
             st.caption("음성으로 확인만 가능합니다.")
             for c in correct_list:
                 st.write(f"- {c['prompt_ja']} / {c['prompt_eo']}: {c['answer_ja']} / {c['answer']}")
@@ -1738,7 +1738,7 @@ def main(*, set_page_config_once: bool = True):
     title_prefix = "복습" if in_spartan else f"Q{q_idx+1}/{len(questions)}"
     if in_spartan and not compact_question_ui:
         st.caption(f"스파르타 복습 남은 {len(st.session_state.spartan_pending)}문제 / 총 {len(questions)}문제")
-        st.caption("틀린 문제만 무작위로 출제합니다. 정답하면 목록에서 사라집니다.")
+        st.caption("틀린 문제만 무작위로 출제합니다. 맞히면 목록에서 사라집니다.")
     question_box_cls = "question-box tight" if ultra_compact_ui else "question-box"
     st.markdown(
         f"<div class='{question_box_cls}'><h3 class='question-title'>{title_prefix}: {prompt_text}</h3></div>",
@@ -1779,12 +1779,12 @@ def main(*, set_page_config_once: bool = True):
                 question["options"][question["answer_index"]]["phrase_id"],
                 question["options"][question["answer_index"]]["phrase"],
                 autoplay=True,
-                caption="🔊 발음 듣기(문제문·자동 재생)",
+                caption="🔊 발음 듣기(문항·자동 재생)",
                 instance=f"prompt-{q_idx}",
                 show_caption=not compact_question_ui,
             )
         elif compact_question_ui:
-            st.markdown("<div class='question-audio-hint'>🔇 문제문 음성은 모바일 최적화에서 숨김</div>", unsafe_allow_html=True)
+            st.markdown("<div class='question-audio-hint'>🔇 문항 음성은 모바일 최적화에서 숨김</div>", unsafe_allow_html=True)
 
     if st.session_state.showing_result:
         if st.session_state.last_is_correct:
