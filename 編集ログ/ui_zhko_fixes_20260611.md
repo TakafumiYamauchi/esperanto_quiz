@@ -75,3 +75,23 @@
   起動前フラッシュとスタンドアロン配信モードの品質向上
 - 将来課題（記録のみ）: スタンドアロンPWAを中韓向けに公開する場合は start_url の
   言語永続化（localStorage）が必要
+
+---
+
+## 第3パス（共有モジュール棚卸し＋アクセシビリティ）
+
+### 体系的棚卸しの結果
+全 .py/.js/.html（未レビュー分）の CJK 文字列を機械抽出し、ユーザー可視性を判定:
+- classic_navigation.py: ja/zh/ko 3言語辞書を完備していた（誤報）。ko内の表記揺れ
+  「모바일판」→「모바일 버전」のみ統一（同ウィジェットの「PC 버전 모드」と平行に）
+- classic_state_bridge / tools / vocab_grouping: ユーザー可視のCJKなし（クリーン）
+- index.html の可視日本語66行: applyStaticText が全て起動時に書き換えることを
+  関数本体の精読で確認（言語リンクの「日本語/中文/한국어」は各言語の自己表記＝正設計）
+
+### 真の発見と修正: aria-label 6箇所の日本語露出（全言語共通）
+app.js は textContent は書き換えるが aria-label は未対応だった。中韓のスクリーン
+リーダー利用者に「出題モード」「選択肢」等が日本語で読み上げられていた。
+→ TARGET_LANG_META 3言語に ariaModeTabs/ariaPromptAudio/ariaChoices/ariaRankingTabs/
+ariaLinks/ariaMainNav の6キーを追加し、applyStaticText に setAttribute 書き換えを実装
+（zh: 出题模式/播放题目语音/选项/排行榜类型/相关链接/主导航、
+ ko: 출제 모드/문항 음성 재생/선택지/랭킹 종류/관련 링크/메인）。

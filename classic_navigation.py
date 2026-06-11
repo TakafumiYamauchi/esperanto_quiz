@@ -36,7 +36,7 @@ MODE_SWITCH_LABELS = {
         "caption": "PC 버전 모드",
         "vocab": "단어",
         "sentence": "예문",
-        "mobile": "모바일판",
+        "mobile": "모바일 버전",
     },
 }
 

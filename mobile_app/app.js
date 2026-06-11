@@ -203,6 +203,12 @@ const TARGET_LANG_META = {
       browserStorage: "ブラウザ保存領域",
       audioMissing: "音声ファイルがありません。",
       audioFailed: "音声を再生できませんでした。通信状態と音量設定を確認してください。",
+      ariaModeTabs: "出題モード",
+      ariaPromptAudio: "問題文の音声を再生",
+      ariaChoices: "選択肢",
+      ariaRankingTabs: "ランキング種別",
+      ariaLinks: "関連リンク",
+      ariaMainNav: "メイン",
     },
   },
   zh: {
@@ -365,6 +371,12 @@ const TARGET_LANG_META = {
       browserStorage: "浏览器存储空间",
       audioMissing: "没有音频文件。",
       audioFailed: "无法播放音频。请检查网络状态和音量设置。",
+      ariaModeTabs: "出题模式",
+      ariaPromptAudio: "播放题目语音",
+      ariaChoices: "选项",
+      ariaRankingTabs: "排行榜类型",
+      ariaLinks: "相关链接",
+      ariaMainNav: "主导航",
     },
   },
   ko: {
@@ -527,6 +539,12 @@ const TARGET_LANG_META = {
       browserStorage: "브라우저 저장 공간",
       audioMissing: "음성 파일이 없습니다.",
       audioFailed: "음성을 재생할 수 없었습니다. 통신 상태와 음량 설정을 확인하세요.",
+      ariaModeTabs: "출제 모드",
+      ariaPromptAudio: "문항 음성 재생",
+      ariaChoices: "선택지",
+      ariaRankingTabs: "랭킹 종류",
+      ariaLinks: "관련 링크",
+      ariaMainNav: "메인",
     },
   },
 };
@@ -1166,6 +1184,19 @@ function applyStaticText() {
   setText(els.classicAppLink, t("classicVersion"));
   els.resultMetricLabels.forEach((node, index) => {
     setText(node, [t("accuracy"), t("points"), t("correct")][index]);
+  });
+  [
+    [".segmented-control[role='tablist']", t("ariaModeTabs")],
+    ["#promptAudioButton", t("ariaPromptAudio")],
+    ["#choiceGrid", t("ariaChoices")],
+    [".ranking-tabs[role='tablist']", t("ariaRankingTabs")],
+    ["#appLinkPanel", t("ariaLinks")],
+    [".bottom-nav", t("ariaMainNav")],
+  ].forEach(([selector, label]) => {
+    const node = document.querySelector(selector);
+    if (node && label) {
+      node.setAttribute("aria-label", label);
+    }
   });
   setAudioModeLabels();
   setRankingTabLabels();
